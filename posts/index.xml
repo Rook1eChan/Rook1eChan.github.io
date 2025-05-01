@@ -11,7 +11,7 @@
 &lt;li>全交互（也被称作交叉编码器,）(all-to-all interaction(cross encoder) )&lt;/li>
 &lt;li>迟交互(late interaction)&lt;/li>
 &lt;/ul>
-&lt;p>&lt;img alt="image-20250501110550465" loading="lazy" src="https://Rook1eChan.github.io/imgs/Neural-IR-Models-img2.jpg">&lt;/p>
+&lt;p>&lt;img alt="image-20250501110550465" loading="lazy" src="https://Rook1eChan.github.io/Neural-IR-Models-2.jpg">&lt;/p>
 &lt;h2 id="1基于表征双塔模型bi-encoder-models">1.基于表征——双塔模型(Bi-encoder Models)&lt;/h2>
 &lt;p>双塔模型将Query和Doc分别表征为密集的向量嵌入，用向量相似度分数来估计Q和D的相关性。在训练时&lt;strong>需要正负样本进行对比学习&lt;/strong>，因为如果只给模型看正样本，它会偷懒——把所有向量都变成一样的，这样“相似度”永远最高。负样本强迫模型学会区分相关和不相关的内容。&lt;/p>
 &lt;p>在将模型训练好后，doc和query的表征可以独立进行，不用像交叉编码器那样每次都要把Query和Doc拼在一起重新计算。&lt;/p>
