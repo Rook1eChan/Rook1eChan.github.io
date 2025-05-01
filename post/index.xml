@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Posts on Chan&#39;s Bolg</title>
+    <link>http://localhost:1313/post/</link>
+    <description>Recent content in Posts on Chan&#39;s Bolg</description>
+    <generator>Hugo -- 0.146.7</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 01 May 2025 21:07:05 +0800</lastBuildDate>
+    <atom:link href="http://localhost:1313/post/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Note1</title>
+      <link>http://localhost:1313/post/note1/</link>
+      <pubDate>Thu, 01 May 2025 21:07:05 +0800</pubDate>
+      <guid>http://localhost:1313/post/note1/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>
