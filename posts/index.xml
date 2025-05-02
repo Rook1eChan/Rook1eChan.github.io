@@ -1,4 +1,56 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.147.1</generator><language>zh-CN</language><lastBuildDate>Fri, 02 May 2025 12:39:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.147.1</generator><language>zh-CN</language><lastBuildDate>Fri, 02 May 2025 23:17:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation</title><link>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</link><pubDate>Fri, 02 May 2025 23:17:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</guid><description>&lt;p>&lt;a href="https://arxiv.org/abs/2504.12560">CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation&lt;/a>&lt;/p>
+&lt;p>只挂了arxiv，粗看，了解一下各模块的实现方式。&lt;/p>
+&lt;h2 id="1motivation">1.Motivation&lt;/h2>
+&lt;p>现有的RAG框架主要是静态检索，且依赖于语义相似性和关联性，这些方法优先考虑主题相关的文档，而并非提供解释或因果关系的文档。这导致响应结果是基于事实的，但是没能理解因果关系。&lt;/p>
+&lt;p>此外，基于大规模观察语料库训练的语言模型倾向于建模共现模式而非因果依赖，这使得它们容易将相关性与因果关系混淆——尤其是在存在不完整或模糊证据的情况下。这些局限性在多跳检索中尤为明显。&lt;/p>
+&lt;p>另外，用户的提问可能是模糊的，现有机制缺乏动态适应和因果机制。&lt;/p>
+&lt;h2 id="2contributions">2.Contributions&lt;/h2>
+&lt;p>本文提出了CDFRAG框架，将强化学习查询优化、多跳因果图检索和基于对齐的幻觉检测整合到一个推理循环中。&lt;/p>
+&lt;p>证明了基于强化学习的查询重写显著提升了多跳因果推理和检索质量，优于先前的细化方法。&lt;/p>
+&lt;p>本方法在四个数据集中均sota，在因果正确性、一致性和可解释性方面均有所改进。&lt;/p>
+&lt;h2 id="3method">3.Method&lt;/h2>
+&lt;h3 id="1构建因果知识图谱">1.构建因果知识图谱&lt;/h3>
+&lt;p>使用UniCausal提取因果对（Causal，Effect）。经过GPT4验证后，编码为（C，E，Relation）并存入有向图G。&lt;/p>
+&lt;h3 id="2根据强化学习进行查询重写">2.根据强化学习进行查询重写&lt;/h3>
+&lt;p>给定用户初始查询q，重写q的过程是一个马尔可夫决策过程（MDP），有三种操作：&lt;/p>
+&lt;ol>
+&lt;li>扩展：添加相关的因果因素&lt;/li>
+&lt;li>简化：去除多余的细节&lt;/li>
+&lt;li>分解：复杂查询拆解为子查询&lt;/li>
+&lt;/ol>
+&lt;p>策略通过SFT微调生成，然后使用PPO优化。&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>监督微调（Supervised Fine-Tuning, SFT）&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;ul>
+&lt;li>&lt;strong>目的&lt;/strong>：用标注的示范数据（如人工修正的样本）初始化策略 (\pi_\theta(a|s))，使其初步具备期望的行为模式。&lt;/li>
+&lt;li>&lt;strong>方法&lt;/strong>：通过最大化对数似然来微调模型参数，损失函数为：
+$L_{\text{SFT}} = -\sum_{t=1}^{T} \log P_\phi(y_t \mid y_{&amp;lt;t}, x)$
+&lt;ul>
+&lt;li>$y_t$ 是时间步 $t$ 的正确动作（或词元）。&lt;/li>
+&lt;li>$y_{&amp;lt;t}$ 表示历史信息（之前的动作或上下文）。&lt;/li>
+&lt;li>$x$ 是输入状态（如提示或环境状态）。&lt;/li>
+&lt;li>核心是让模型输出的概率分布贴近人工标注的数据。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;ol start="2">
+&lt;li>&lt;strong>近端策略优化（Proximal Policy Optimization, PPO）&lt;/strong>&lt;/li>
+&lt;/ol>
+&lt;ul>
+&lt;li>&lt;strong>目的&lt;/strong>：在SFT的基础上，通过与环境交互进一步优化策略，平衡探索与利用，同时避免训练不稳定。&lt;/li>
+&lt;li>&lt;strong>损失函数&lt;/strong>：
+$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot A_t, \text{截断后的比率项} \cdot A_t \right) \right]$
+&lt;ul>
+&lt;li>&lt;strong>比率项&lt;/strong>：新策略与旧策略的概率比&lt;/li>
+&lt;li>$\frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(at|st)}$，衡量策略变化程度。&lt;/li>
+&lt;li>&lt;strong>优势函数 $A_t$&lt;/strong>：评估动作 $a$ 在状态 $s$ 下比平均表现好多少（由评论家模型或蒙特卡洛估计）。&lt;/li>
+&lt;li>&lt;strong>截断机制&lt;/strong>：限制比率项在 $[1-\epsilon, 1+\epsilon]$ 之间，防止单步更新过大，确保训练稳定。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h3 id="3语义因果双路径检索">3.语义+因果双路径检索&lt;/h3>
+&lt;p>使用MiniLM对优化后的查询进行编码，在向量数据库进行相似性搜索。（整句话编码的稠密检索）&lt;/p></description></item><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
 &lt;h2 id="一hugo">一、Hugo&lt;/h2>
 &lt;p>hugo是一个快速搭建网站的工具，由go语言编写。&lt;/p>
 &lt;h3 id="1安装hugo">1.安装hugo&lt;/h3>
