@@ -1,32 +1,33 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chan's Bolg</title><link>https://Rook1eChan.github.io/</link><description>Recent content on Chan's Bolg</description><generator>Hugo -- 0.147.1</generator><language>zh-cn</language><lastBuildDate>Fri, 02 May 2025 12:39:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chan's Blog</title><link>https://Rook1eChan.github.io/</link><description>Recent content on Chan's Blog</description><generator>Hugo -- 0.147.1</generator><language>zh-CN</language><lastBuildDate>Fri, 02 May 2025 12:39:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
 &lt;h2 id="一hugo">一、Hugo&lt;/h2>
 &lt;p>hugo是一个快速搭建网站的工具，由go语言编写。&lt;/p>
 &lt;h3 id="1安装hugo">1.安装hugo&lt;/h3>
 &lt;p>到hugo的github标签页&lt;a href="https://github.com/gohugoio/hugo/tags">Tags · gohugoio/hugo&lt;/a>选择一个版本，下载对应的安装包。比如&lt;code>hugo_extended_withdeploy_0.147.0_windows-amd64.zip&lt;/code>。&lt;/p>
 &lt;p>解压后，在根目录打开cmd，输入&lt;/p>
-&lt;pre tabindex="0">&lt;code>hugo new site YourSiteName
-&lt;/code>&lt;/pre>&lt;p>为你的网站建立文件夹。&lt;code>YourSiteName&lt;/code>更改为你的网站的名字。
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-cmd" data-lang="cmd">&lt;span class="line">&lt;span class="cl">hugo new site YourSiteName
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>为你的网站建立文件夹。&lt;code>YourSiteName&lt;/code>更改为你的网站的名字。
 根目录会出现YourSiteName文件夹。&lt;/p>
 &lt;p>3.将根目录的hugo.exe复制到YourSiteName里。
 在YourSiteName文件夹里打开cmd，输入&lt;/p>
-&lt;pre tabindex="0">&lt;code>hugo server -D
-&lt;/code>&lt;/pre>&lt;p>会返回如下信息：&lt;/p>
-&lt;pre tabindex="0">&lt;code> | EN
--------------------+-----
-Pages | 11
-Paginator pages | 0
-Non-page files | 0
-Static files | 0
-Processed images | 0
-Aliases | 2
-Cleaned | 0
-Built in 79 ms
-Environment: &amp;#34;development&amp;#34;
-Serving pages from disk
-Running in Fast Render Mode. For full rebuilds on change: hugo server --disableFastRender
-Web Server is available at http://localhost:1313/ (bind address 127.0.0.1)
-Press Ctrl+C to stop
-&lt;/code>&lt;/pre>&lt;p>在浏览器中输入&lt;code>http://localhost:1313/&lt;/code>，显示Page Not Found，说明服务器正常运行，但是此时网站还没有页面。&lt;/p></description></item><item><title>Neural-IR Models（博客）</title><link>https://Rook1eChan.github.io/posts/neural-ir-models/</link><pubDate>Fri, 02 May 2025 01:18:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/neural-ir-models/</guid><description>&lt;p>原文：&lt;a href="https://medium.com/@mhammadkhan/neural-re-ranking-models-c0a67278f626">Neural-IR Models.. Neural IR(Information Retrieval) is a… | by Muhammad Hammad Khan | Medium&lt;/a>&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-cmd" data-lang="cmd">&lt;span class="line">&lt;span class="cl">hugo server -D
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>会返回如下信息：&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-cmd" data-lang="cmd">&lt;span class="line">&lt;span class="cl"> &lt;span class="p">|&lt;/span> EN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-------------------+-----
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Pages &lt;span class="p">|&lt;/span> 11
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Paginator pages &lt;span class="p">|&lt;/span> 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Non-page files &lt;span class="p">|&lt;/span> 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Static files &lt;span class="p">|&lt;/span> 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Processed images &lt;span class="p">|&lt;/span> 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Aliases &lt;span class="p">|&lt;/span> 2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Cleaned &lt;span class="p">|&lt;/span> 0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Built in 79 ms
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Environment: &lt;span class="s2">&amp;#34;development&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Serving pages from disk
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Running in Fast Render Mode. For full rebuilds on change: hugo server --disableFastRender
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Web Server is available at http://localhost:1313/ (bind address 127.0.0.1)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Press Ctrl+C to stop
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>在浏览器中输入&lt;code>http://localhost:1313/&lt;/code>，显示Page Not Found，说明服务器正常运行，但是此时网站还没有页面。&lt;/p></description></item><item><title>Neural-IR Models（博客）</title><link>https://Rook1eChan.github.io/posts/neural-ir-models/</link><pubDate>Fri, 02 May 2025 01:18:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/neural-ir-models/</guid><description>&lt;p>原文：&lt;a href="https://medium.com/@mhammadkhan/neural-re-ranking-models-c0a67278f626">Neural-IR Models.. Neural IR(Information Retrieval) is a… | by Muhammad Hammad Khan | Medium&lt;/a>&lt;/p>
 &lt;p>译文：&lt;a href="https://zhuanlan.zhihu.com/p/545429612">【翻译】一文详解神经信息检索领域的最新进展 - 知乎&lt;/a>&lt;/p>
 &lt;p>神经信息检索(Neural Information Retrieval, Neural IR)是信息检索领域的一个重要研究课题。自从谷歌在2018年发布BERT以来，它在11个NLP任务上获得了最先进的结果，一举改变了整个NLP领域的研究范式。2019年1月，Nogueira和Cho在MS MARCO Passage Ranking测试集上首次使用BERT。从那时起，人们开始研究神经信息检索的范式，也提出了许多基于BERT的文本排序方法。这些方法用于&lt;strong>多阶段搜索架构的重排阶段(Re-Ranker)&lt;/strong>。如下图所示。&lt;/p>
 &lt;p>&lt;img alt="image" loading="lazy" src="https://Rook1eChan.github.io/Neural-IR-Models-1.jpg">&lt;/p>
