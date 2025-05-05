@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.147.1</generator><language>zh-CN</language><lastBuildDate>Sun, 04 May 2025 09:12:03 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>RAG 数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</guid><description>&lt;h3 id="1lightrag">1.LightRAG&lt;/h3>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.147.1</generator><language>zh-CN</language><lastBuildDate>Mon, 05 May 2025 12:23:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>RAG 数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</guid><description>&lt;h3 id="1lightrag">1.LightRAG&lt;/h3>
 &lt;h4 id="数据集">数据集&lt;/h4>
 &lt;p>使用&lt;a href="https://arxiv.org/abs/2409.05591">MemoRAG&lt;/a>提出的Benchmark。&lt;/p>
 &lt;p>在UltraDomain里，包含多个领域的数据，每个数据包括多本书。以cs为例，共含有100本书和100个对应的问题。该领域专注于计算机科学，涵盖数据科学和软件工程的关键领域。它特别强调机器学习和大数据处理，内容涉及推荐系统、分类算法以及使用Spark进行实时分析。：&lt;/p>
@@ -25,7 +25,73 @@
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 4. What are the suggested changes to current policies mentioned by the guests?
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 5. Are collaborations between tech companies and governments discussed and how?
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="评价标准">评价标准&lt;/h4>
-&lt;p>不使用黄金标准答案，使用LLM评价。包括&lt;/p></description></item><item><title>CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation</title><link>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</link><pubDate>Fri, 02 May 2025 23:17:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</guid><description>&lt;p>&lt;a href="https://arxiv.org/abs/2504.12560">CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation&lt;/a>&lt;/p>
+&lt;p>不使用黄金标准答案，使用LLM评价。包括&lt;/p></description></item><item><title>DAPR A Benchmark on Document-Aware Passage Retrieval</title><link>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</link><pubDate>Mon, 05 May 2025 12:23:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</guid><description>&lt;h2 id="0目标">0.目标&lt;/h2>
+&lt;p>神经检索（neural retrieval）的工作主要集中在短文本排序，无法处理需要连接上下文的问题，在长篇文章中做检索效果并不好。&lt;/p>
+&lt;p>比如：在A剧场中演出过的演员有哪些？如果只检索“A剧场”，可能找不到答案，需要结合上下文找到“……在这里演出过……”的内容才是真正答案。&lt;/p>
+&lt;p>对SOTA检索器（DRAGON+,SPLADEv2, and ColBERTv2 and BM25）的错误进行了分析，发现一般的错误是由缺乏上下文导致的（相关段落非自包含），DAPR很有必要。&lt;/p>
+&lt;h2 id="1贡献">1.贡献&lt;/h2>
+&lt;ol>
+&lt;li>提出DAPR（文章感知段落检索）&lt;/li>
+&lt;li>构建了一个基准测试数据集（benchmark），包括了5个不同领域的数据集&lt;/li>
+&lt;/ol>
+&lt;h2 id="2相关工作">2.相关工作&lt;/h2>
+&lt;ul>
+&lt;li>DocQA：要求模型回答关于输入文档的问题。通常假设相关文档在提问前就已给出。&lt;/li>
+&lt;li>Long-document retrieval（长文档检索）：
+&lt;ul>
+&lt;li>MaxP——将文档中段落相关性的最大值作为文档相关性；&lt;/li>
+&lt;li>FirstP——仅编码文档中的第一个段落；&lt;/li>
+&lt;li>等等；&lt;/li>
+&lt;li>但此前的方法都未在检索的同时考虑上下文。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>Hybrid retrieval（混合检索）：
+&lt;ul>
+&lt;li>rank fusion（排名融合）——通过凸组合、互逆排名等方法将不同检索系统的个体排名合并为一个。&lt;/li>
+&lt;li>hierarchical retrieval（层次检索）——首先检索文档，然后从这些文档中检索段落。只适用于段落本身足以对查询做出响应的情况。&lt;/li>
+&lt;li>本文探讨了段落排名和文档排名结合的有效性。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>和预训练任务的关系：
+&lt;ul>
+&lt;li>以前的方法只关注独立的句子/段落，而不注意上下文。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>补充：
+&lt;ul>
+&lt;li>NQ：谷歌的一个问答数据集&lt;/li>
+&lt;li>NDCG：评价检索序列的相关性和位置&lt;/li>
+&lt;li>共指信息：描述文本中不同表达式指向同一实体或概念的语言现象，如*“玛丽打开了门，&lt;strong>她&lt;/strong>随后拿起包。”* → “她”与“玛丽”共指同一人。&lt;/li>
+&lt;li>共指消解（Coreference Resolution）：自动识别文本中所有指向同一实体的表达式并分组。&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;h2 id="3dapr任务">3.DAPR任务&lt;/h2>
+&lt;h3 id="31错误的主要类型">3.1错误的主要类型&lt;/h3>
+&lt;p>对SOTA的检索器使用NQ数据集，发现一半的错误来自于不了解上下文。将这些数据命名为&lt;strong>NQ-hard&lt;/strong>，并分为4类：&lt;/p>
+&lt;ol>
+&lt;li>共指消解（CR）：关键的共指信息需要通过特定文档上下文来解析；&lt;/li>
+&lt;li>主要主题（MT）：只有了解文档的背景主题（通常是标题），才能回答查询；&lt;/li>
+&lt;li>多跳推理（MHR）：连接查询和查询相关段落中的实体的推理路径包括文档上下文中的其他节点；&lt;/li>
+&lt;li>缩写（AC）：在相关段落（或查询）中出现一个缩写，该缩写对应于查询（或相关段落）中的全称，文档上下文解释了这种映射；&lt;/li>
+&lt;/ol>
+&lt;h3 id="32本文用到的数据集">3.2本文用到的数据集&lt;/h3>
+&lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA（具体处理方式见附录A）&lt;/p>
+&lt;p>对于MS MARCO和Natural Questions，我们将原始开发集视为测试集，并保留了一组采样的训练示例作为我们的开发集。对于其他7个数据集，我们保留了它们的原始数据分割。对于除MS MARCO外的数据集，段落片段是可用的（共同构成段落集合C）；而对于MS MARCO，此类信息不存在，仅提供C中相关文档内的段落跨度。&lt;/p>
+&lt;p>来自不同领域，经过预处理&lt;/p>
+&lt;h3 id="33评估">3.3评估&lt;/h3>
+&lt;p>使用&lt;strong>nDCG@10&lt;/strong>和recall@100，代码中使用pytrec_eval计算nDCG@10&lt;/p>
+&lt;p>零样本评估：在MS MARCO训练部分训练，在MS测试部分测试，作为域内评估；在其它四个数据集上测试，作为域外评估。&lt;/p>
+&lt;h2 id="4实验">4.实验&lt;/h2>
+&lt;h3 id="41基础检测器">4.1基础检测器&lt;/h3>
+&lt;ul>
+&lt;li>BM25：PySerini（用于BM25的默认配置）&lt;/li>
+&lt;li>neural retrievers：DRAGON+、SPLADEv2、ColBERTv2，并在MS MARCO上训练&lt;/li>
+&lt;/ul>
+&lt;h3 id="42两种将上下文引入神经检索器的方法">4.2两种将上下文引入神经检索器的方法&lt;/h3>
+&lt;h4 id="421加入bm25的混合检索">4.2.1加入BM25的混合检索&lt;/h4>
+&lt;p>（1）融合检索&lt;/p>
+&lt;p>由于神经网络适合于检测512token内的段落，而BM25无限制，所以使用BM25检索整个文档，而使用神经检索器检索段落。&lt;/p></description></item><item><title>CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation</title><link>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</link><pubDate>Fri, 02 May 2025 23:17:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</guid><description>&lt;p>&lt;a href="https://arxiv.org/abs/2504.12560">CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation&lt;/a>&lt;/p>
 &lt;p>只挂了arxiv，粗看，了解一下各模块的实现方式。&lt;/p>
 &lt;h2 id="1motivation">1.Motivation&lt;/h2>
 &lt;p>现有的RAG框架主要是静态检索，且依赖于语义相似性和关联性，这些方法优先考虑主题相关的文档，而并非提供解释或因果关系的文档。这导致响应结果是基于事实的，但是没能理解因果关系。&lt;/p>
