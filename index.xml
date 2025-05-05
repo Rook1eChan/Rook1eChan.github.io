@@ -116,13 +116,13 @@
 &lt;li>&lt;strong>监督微调（Supervised Fine-Tuning, SFT）&lt;/strong>&lt;/li>
 &lt;/ol>
 &lt;ul>
-&lt;li>&lt;strong>目的&lt;/strong>：用标注的示范数据（如人工修正的样本）初始化策略 (\pi_\theta(a|s))，使其初步具备期望的行为模式。&lt;/li>
+&lt;li>&lt;strong>目的&lt;/strong>：用标注的示范数据（如人工修正的样本）初始化策略 $$\pi_\theta(a|s)$$，使其初步具备期望的行为模式。&lt;/li>
 &lt;li>&lt;strong>方法&lt;/strong>：通过最大化对数似然来微调模型参数，损失函数为：
-$L_{\text{SFT}} = -\sum_{t=1}^{T} \log P_\phi(y_t \mid y_{&amp;lt;t}, x)$
+$$L_{\text{SFT}} = -\sum_{t=1}^{T} \log P_\phi(y_t \mid y_{&amp;lt;t}, x)$$
 &lt;ul>
-&lt;li>$y_t$ 是时间步 $t$ 的正确动作（或词元）。&lt;/li>
-&lt;li>$y_{&amp;lt;t}$ 表示历史信息（之前的动作或上下文）。&lt;/li>
-&lt;li>$x$ 是输入状态（如提示或环境状态）。&lt;/li>
+&lt;li>$$y_t$$ 是时间步 $$t$$ 的正确动作（或词元）。&lt;/li>
+&lt;li>$$y_{&amp;lt;t}$$ 表示历史信息（之前的动作或上下文）。&lt;/li>
+&lt;li>$$x$$ 是输入状态（如提示或环境状态）。&lt;/li>
 &lt;li>核心是让模型输出的概率分布贴近人工标注的数据。&lt;/li>
 &lt;/ul>
 &lt;/li>
@@ -133,12 +133,12 @@ $L_{\text{SFT}} = -\sum_{t=1}^{T} \log P_\phi(y_t \mid y_{&amp;lt;t}, x)$
 &lt;ul>
 &lt;li>&lt;strong>目的&lt;/strong>：在SFT的基础上，通过与环境交互进一步优化策略，平衡探索与利用，同时避免训练不稳定。&lt;/li>
 &lt;li>&lt;strong>损失函数&lt;/strong>：
-$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot A_t, \text{截断后的比率项} \cdot A_t \right) \right]$
+$$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot A_t, \text{截断后的比率项} \cdot A_t \right) \right]$$
 &lt;ul>
 &lt;li>&lt;strong>比率项&lt;/strong>：新策略与旧策略的概率比&lt;/li>
-&lt;li>$\frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(at|st)}$，衡量策略变化程度。&lt;/li>
-&lt;li>&lt;strong>优势函数 $A_t$&lt;/strong>：评估动作 $a$ 在状态 $s$ 下比平均表现好多少（由评论家模型或蒙特卡洛估计）。&lt;/li>
-&lt;li>&lt;strong>截断机制&lt;/strong>：限制比率项在 $[1-\epsilon, 1+\epsilon]$ 之间，防止单步更新过大，确保训练稳定。&lt;/li>
+&lt;li>$$\frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(at|st)}$$，衡量策略变化程度。&lt;/li>
+&lt;li>&lt;strong>优势函数 $$A_t$$&lt;/strong>：评估动作 $$a$$ 在状态 $$s$$ 下比平均表现好多少（由评论家模型或蒙特卡洛估计）。&lt;/li>
+&lt;li>&lt;strong>截断机制&lt;/strong>：限制比率项在 $$[1-\epsilon, 1+\epsilon]$$ 之间，防止单步更新过大，确保训练稳定。&lt;/li>
 &lt;/ul>
 &lt;/li>
 &lt;/ul>
