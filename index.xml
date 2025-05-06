@@ -77,38 +77,22 @@ $$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot
 &lt;/li>
 &lt;/ul>
 &lt;h3 id="3语义因果双路径检索">3.语义+因果双路径检索&lt;/h3>
-&lt;p>使用MiniLM对优化后的查询进行编码，在向量数据库进行相似性搜索。（整句话编码的稠密检索）&lt;/p></description></item><item><title>DAPR A Benchmark on Document-Aware Passage Retrieval</title><link>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</link><pubDate>Fri, 02 May 2025 16:41:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</guid><description>&lt;h2 id="0目标">0.目标&lt;/h2>
-&lt;p>神经检索（neural retrieval）的工作主要集中在短文本排序，无法处理需要连接上下文的问题，在长篇文章中做检索效果并不好。&lt;/p>
-&lt;p>比如：在A剧场中演出过的演员有哪些？如果只检索“A剧场”，可能找不到答案，需要结合上下文找到“……在这里演出过……”的内容才是真正答案。&lt;/p>
-&lt;p>对SOTA检索器（DRAGON+,SPLADEv2, and ColBERTv2 and BM25）的错误进行了分析，发现一般的错误是由缺乏上下文导致的（相关段落非自包含），DAPR很有必要。&lt;/p>
-&lt;h2 id="1贡献">1.贡献&lt;/h2>
-&lt;ol>
-&lt;li>提出DAPR（文章感知段落检索）&lt;/li>
-&lt;li>构建了一个基准测试数据集（benchmark），包括了5个不同领域的数据集&lt;/li>
-&lt;/ol>
-&lt;h2 id="2相关工作">2.相关工作&lt;/h2>
+&lt;p>使用MiniLM对优化后的查询进行编码，在向量数据库进行相似性搜索。（整句话编码的稠密检索）&lt;/p></description></item><item><title>DAPR A Benchmark on Document-Aware Passage Retrieval</title><link>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</link><pubDate>Fri, 02 May 2025 16:41:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</guid><description>&lt;h2 id="1motivation">1.Motivation&lt;/h2>
+&lt;p>现有的神经检索（neural retrieval）的方法主要集中在短文本排序，在长篇文章中做检索效果并不好（由于自注意力机制token数量的限制；或者返回的文档过长，不便于用户使用）。另外，作者发现在先进检索器的检索错误中，半数错误与缺少上下文有关。&lt;/p>
+&lt;p>比如：在A剧场中演出过的演员有哪些？如果只检索关键字“A剧场”，可能找不到答案，需要结合上下文找到“……在这里演出过……”的内容才是真正答案。&lt;/p>
+&lt;p>因此，作者针对上下文强关联的任务建立了一个数据集，使用两类方法（hybrid retrieval with BM25、 contextualized passage representations）进行实验，并详细解释了实验结果。&lt;/p>
+&lt;h2 id="2related-work">2.Related work&lt;/h2>
 &lt;ul>
-&lt;li>DocQA：要求模型回答关于输入文档的问题。通常假设相关文档在提问前就已给出。&lt;/li>
-&lt;li>Long-document retrieval（长文档检索）：
-&lt;ul>
-&lt;li>MaxP——将文档中段落相关性的最大值作为文档相关性；&lt;/li>
-&lt;li>FirstP——仅编码文档中的第一个段落；&lt;/li>
-&lt;li>等等；&lt;/li>
-&lt;li>但此前的方法都未在检索的同时考虑上下文。&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>Hybrid retrieval（混合检索）：
+&lt;li>&lt;strong>Document Question Answering（DocQA）&lt;/strong>：要求模型回答关于输入文档的问题，通常假设文档在提问前就已给出。本文提出的(Document-Awarepassage Retrieval, DAPR)与DocQA类似，区别在于DAPR希望用户提问时不知道目标文档，由模型来寻找目标文档。&lt;/li>
+&lt;li>&lt;strong>Long-document retrieval（长文档检索）&lt;/strong>：对于长文档检索有一些简单的方法：将文档中段落相关性的最大值作为文档的相关性（MaxP）；仅编码文档中的第一个段落（FirstP）……与DAPR相比，所有这些先前的工作都没有研究如何在考虑文档上下文的情况下检索段落。&lt;/li>
+&lt;li>&lt;strong>Hybrid retrieval（混合检索）&lt;/strong>：对于一个查询使用多个检索系统（常常是BM25+神经检索）
 &lt;ul>
 &lt;li>rank fusion（排名融合）——通过凸组合、互逆排名等方法将不同检索系统的个体排名合并为一个。&lt;/li>
 &lt;li>hierarchical retrieval（层次检索）——首先检索文档，然后从这些文档中检索段落。只适用于段落本身足以对查询做出响应的情况。&lt;/li>
 &lt;li>本文探讨了段落排名和文档排名结合的有效性。&lt;/li>
 &lt;/ul>
 &lt;/li>
-&lt;li>和预训练任务的关系：
-&lt;ul>
-&lt;li>以前的方法只关注独立的句子/段落，而不注意上下文。&lt;/li>
-&lt;/ul>
-&lt;/li>
+&lt;li>&lt;strong>Relation to pre-training tasks（和预训练任务的关系）&lt;/strong>：有的研究在预训练中加入上下文。但推理时仍然只关注独立的段落。&lt;/li>
 &lt;li>补充：
 &lt;ul>
 &lt;li>NQ：谷歌的一个问答数据集&lt;/li>
@@ -118,32 +102,32 @@ $$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot
 &lt;/ul>
 &lt;/li>
 &lt;/ul>
-&lt;h2 id="3dapr任务">3.DAPR任务&lt;/h2>
-&lt;h3 id="31错误的主要类型">3.1错误的主要类型&lt;/h3>
-&lt;p>对SOTA的检索器使用NQ数据集，发现一半的错误来自于不了解上下文。将这些数据命名为&lt;strong>NQ-hard&lt;/strong>，并分为4类：&lt;/p>
+&lt;h2 id="3method">3.Method&lt;/h2>
+&lt;p>DAPR任务要求系统提取+排序。给出段落集合$C$，文档集合$D$，对于查询集合$q \in Q$，检索系统$s$应该提取出最好的$K$个段落集合$R$。&lt;/p>
+&lt;h3 id="31nq-hard">3.1NQ-Hard&lt;/h3>
+&lt;p>对SOTA的检索器（DRAGON+,SPLADEv2, and ColBERTv2)使用NQ数据集，发现一半的错误来自于不了解上下文。将这些数据命名为&lt;strong>NQ-hard&lt;/strong>，并分为4类：&lt;/p>
 &lt;ol>
 &lt;li>共指消解（CR）：关键的共指信息需要通过特定文档上下文来解析；&lt;/li>
 &lt;li>主要主题（MT）：只有了解文档的背景主题（通常是标题），才能回答查询；&lt;/li>
 &lt;li>多跳推理（MHR）：连接查询和查询相关段落中的实体的推理路径包括文档上下文中的其他节点；&lt;/li>
 &lt;li>缩写（AC）：在相关段落（或查询）中出现一个缩写，该缩写对应于查询（或相关段落）中的全称，文档上下文解释了这种映射；&lt;/li>
 &lt;/ol>
-&lt;h3 id="32本文用到的数据集">3.2本文用到的数据集&lt;/h3>
+&lt;p>&lt;img alt="nqques" loading="lazy" src="https://Rook1eChan.github.io/DAPR/NQques.png">&lt;/p>
+&lt;h3 id="32datasets">3.2Datasets&lt;/h3>
 &lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA（具体处理方式见附录A）&lt;/p>
-&lt;p>对于MS MARCO和Natural Questions，我们将原始开发集视为测试集，并保留了一组采样的训练示例作为我们的开发集。对于其他7个数据集，我们保留了它们的原始数据分割。对于除MS MARCO外的数据集，段落片段是可用的（共同构成段落集合C）；而对于MS MARCO，此类信息不存在，仅提供C中相关文档内的段落跨度。&lt;/p>
-&lt;p>来自不同领域，经过预处理&lt;/p>
-&lt;h3 id="33评估">3.3评估&lt;/h3>
-&lt;p>使用&lt;strong>nDCG@10&lt;/strong>和recall@100，代码中使用pytrec_eval计算nDCG@10&lt;/p>
-&lt;p>零样本评估：在MS MARCO训练部分训练，在MS测试部分测试，作为域内评估；在其它四个数据集上测试，作为域外评估。&lt;/p>
-&lt;h2 id="4实验">4.实验&lt;/h2>
-&lt;h3 id="41基础检测器">4.1基础检测器&lt;/h3>
+&lt;h3 id="33evaluation">3.3Evaluation&lt;/h3>
+&lt;p>使用&lt;strong>nDCG@10&lt;/strong>和recall@100做指标。&lt;/p>
+&lt;p>将binary/3-scale转换为0-1/0-1-2，然后使用pytrec_eval计算指标。&lt;/p>
+&lt;p>考虑到现实世界中的检索系统多用于零样本、跨领域的情景，本文进行了一项测试：在MS MARCO训练集训练，然后在MS MARCO测试集测试，作为域内评估；在其它四个数据集上测试，作为域外评估。&lt;/p>
+&lt;h2 id="4experiments">4.Experiments&lt;/h2>
+&lt;h3 id="41基础检索器">4.1基础检索器&lt;/h3>
 &lt;ul>
-&lt;li>BM25：PySerini（用于BM25的默认配置）&lt;/li>
-&lt;li>neural retrievers：DRAGON+、SPLADEv2、ColBERTv2，并在MS MARCO上训练&lt;/li>
+&lt;li>BM25（使用PySerini的默认配置）&lt;/li>
+&lt;li>neural retrievers：DRAGON+、SPLADEv2、ColBERTv2（在MS MARCO上训练）&lt;/li>
 &lt;/ul>
 &lt;h3 id="42两种将上下文引入神经检索器的方法">4.2两种将上下文引入神经检索器的方法&lt;/h3>
 &lt;h4 id="421加入bm25的混合检索">4.2.1加入BM25的混合检索&lt;/h4>
-&lt;p>（1）融合检索&lt;/p>
-&lt;p>由于神经网络适合于检测512token内的段落，而BM25无限制，所以使用BM25检索整个文档，而使用神经检索器检索段落。&lt;/p></description></item><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
+&lt;p>&lt;strong>（1）Rank fusion融合检索&lt;/strong>&lt;/p></description></item><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
 &lt;h2 id="一hugo">一、Hugo&lt;/h2>
 &lt;p>hugo是一个快速搭建网站的工具，由go语言编写。&lt;/p>
 &lt;h3 id="1安装hugo">1.安装hugo&lt;/h3>
