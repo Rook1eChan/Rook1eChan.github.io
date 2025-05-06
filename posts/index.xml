@@ -81,6 +81,7 @@ $$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot
 &lt;p>现有的神经检索（neural retrieval）的方法主要集中在短文本排序，在长篇文章中做检索效果并不好（由于自注意力机制token数量的限制；或者返回的文档过长，不便于用户使用）。另外，作者发现在先进检索器的检索错误中，半数错误与缺少上下文有关。&lt;/p>
 &lt;p>比如：在A剧场中演出过的演员有哪些？如果只检索关键字“A剧场”，可能找不到答案，需要结合上下文找到“……在这里演出过……”的内容才是真正答案。&lt;/p>
 &lt;p>因此，作者针对上下文强关联的任务建立了一个数据集，使用两类方法（hybrid retrieval with BM25、 contextualized passage representations）进行实验，并详细解释了实验结果。&lt;/p>
+&lt;BR>
 &lt;h2 id="2related-work">2.Related work&lt;/h2>
 &lt;ul>
 &lt;li>&lt;strong>Document Question Answering（DocQA）&lt;/strong>：要求模型回答关于输入文档的问题，通常假设文档在提问前就已给出。本文提出的(Document-Awarepassage Retrieval, DAPR)与DocQA类似，区别在于DAPR希望用户提问时不知道目标文档，由模型来寻找目标文档。&lt;/li>
@@ -102,6 +103,7 @@ $$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot
 &lt;/ul>
 &lt;/li>
 &lt;/ul>
+&lt;BR>
 &lt;h2 id="3method">3.Method&lt;/h2>
 &lt;p>DAPR任务要求系统提取+排序。给出段落集合$C$，文档集合$D$，对于查询集合$q \in Q$，检索系统$s$应该提取出最好的$K$个段落集合$R$。&lt;/p>
 &lt;h3 id="31nq-hard">3.1NQ-Hard&lt;/h3>
@@ -113,18 +115,22 @@ $$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot
 &lt;li>缩写（AC）：在相关段落（或查询）中出现一个缩写，该缩写对应于查询（或相关段落）中的全称，文档上下文解释了这种映射；&lt;/li>
 &lt;/ol>
 &lt;p>&lt;img alt="nqques" loading="lazy" src="https://Rook1eChan.github.io/DAPR/NQques.png">&lt;/p>
+&lt;BR>
 &lt;h3 id="32datasets">3.2Datasets&lt;/h3>
 &lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA（具体处理方式见附录A）&lt;/p>
+&lt;BR>
 &lt;h3 id="33evaluation">3.3Evaluation&lt;/h3>
 &lt;p>使用&lt;strong>nDCG@10&lt;/strong>和recall@100做指标。&lt;/p>
 &lt;p>将binary/3-scale转换为0-1/0-1-2，然后使用pytrec_eval计算指标。&lt;/p>
 &lt;p>考虑到现实世界中的检索系统多用于零样本、跨领域的情景，本文进行了一项测试：在MS MARCO训练集训练，然后在MS MARCO测试集测试，作为域内评估；在其它四个数据集上测试，作为域外评估。&lt;/p>
+&lt;BR>
 &lt;h2 id="4experiments">4.Experiments&lt;/h2>
 &lt;h3 id="41基础检索器">4.1基础检索器&lt;/h3>
 &lt;ul>
 &lt;li>BM25（使用PySerini的默认配置）&lt;/li>
 &lt;li>neural retrievers：DRAGON+、SPLADEv2、ColBERTv2（在MS MARCO上训练）&lt;/li>
 &lt;/ul>
+&lt;BR>
 &lt;h3 id="42两种将上下文引入神经检索器的方法">4.2两种将上下文引入神经检索器的方法&lt;/h3>
 &lt;h4 id="421加入bm25的混合检索">4.2.1加入BM25的混合检索&lt;/h4>
 &lt;p>&lt;strong>（1）Rank fusion融合检索&lt;/strong>&lt;/p></description></item><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
