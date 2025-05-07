@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chan's Blog</title><link>https://Rook1eChan.github.io/</link><description>Recent content on Chan's Blog</description><generator>Hugo -- 0.147.2</generator><language>zh-CN</language><lastBuildDate>Sun, 04 May 2025 09:12:03 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>RAG 数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</guid><description>&lt;blockquote>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chan's Blog</title><link>https://Rook1eChan.github.io/</link><description>Recent content on Chan's Blog</description><generator>Hugo -- 0.147.2</generator><language>zh-CN</language><lastBuildDate>Wed, 07 May 2025 15:49:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>RAG 数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/rag-datasetsevaluation/</guid><description>&lt;blockquote>
 &lt;p>1.使用LLM生成问题及答案&lt;/p>
 &lt;p>2.使用标注数据集&lt;/p>&lt;/blockquote>
 &lt;h3 id="1lightrag">1.LightRAG&lt;/h3>
@@ -28,7 +28,55 @@
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 4. What are the suggested changes to current policies mentioned by the guests?
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 5. Are collaborations between tech companies and governments discussed and how?
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="评价标准">评价标准&lt;/h4>
-&lt;p>不使用黄金标准答案，使用LLM评价。包括&lt;/p></description></item><item><title>CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation</title><link>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</link><pubDate>Fri, 02 May 2025 23:17:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</guid><description>&lt;p>&lt;a href="https://arxiv.org/abs/2504.12560">CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation&lt;/a>&lt;/p>
+&lt;p>不使用黄金标准答案，使用LLM评价。包括&lt;/p></description></item><item><title>RAGTruth: A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models</title><link>https://Rook1eChan.github.io/posts/ragtruth/</link><pubDate>Wed, 07 May 2025 15:49:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/ragtruth/</guid><description>&lt;h1 id="1motivation">1.Motivation&lt;/h1>
+&lt;p>尽管有了RAG的帮助，LLM仍有可能给出与所提供知识不符的回答。因此需要构建一个数据集来检测幻觉。&lt;/p>
+&lt;br>
+&lt;h1 id="2contributions">2.Contributions&lt;/h1>
+&lt;ol>
+&lt;li>提出RAGTruth，一个大规模词级别的幻觉检测数据集，由LLM自然产生（作者认为故意触发的幻觉与自然产生的幻觉存在差异）&lt;/li>
+&lt;li>对现有幻觉检测方法进行比较&lt;/li>
+&lt;li>提出了微调LLM用于幻觉检测的基线。Llama-2-13B在RAGTruth training data上微调后比得上GPT4&lt;/li>
+&lt;li>证明了使用微调得到的幻觉检测器，能降低幻觉&lt;/li>
+&lt;/ol>
+&lt;h1 id="3related-work">3.Related Work&lt;/h1>
+&lt;h1 id="4methods">4.Methods&lt;/h1>
+&lt;h2 id="1hallucination-taxonomy幻觉类型">1.Hallucination Taxonomy幻觉类型&lt;/h2>
+&lt;p>本文将幻觉类型分为：&lt;/p>
+&lt;ol>
+&lt;li>&lt;strong>Evident Conflict明显冲突&lt;/strong>：与提供的文本明显相反，容易辨别，如事实错误、拼写错误、数字错误。&lt;/li>
+&lt;li>&lt;strong>Subtle Conflict轻微冲突&lt;/strong>：生成的信息与提供的文本有歧义，比如术语的替换，需要结合上下文判断。&lt;/li>
+&lt;li>&lt;strong>Evident Introduction of Baseless Information明显引入无根据知识&lt;/strong>：生成的内容不在提供的信息之内。&lt;/li>
+&lt;li>&lt;strong>Subtle Introduction of Baseless Information轻微引入无根据知识&lt;/strong>：生成内容超出了提供的信息，比如主观的假设或推断。&lt;/li>
+&lt;/ol>
+&lt;h2 id="2response-generation回答生成">2.Response Generation回答生成&lt;/h2>
+&lt;p>选择三个任务: Question Answering,Data-to-text Writing, and News Summarization.（问题回答、数据到文本的写作、新闻摘要），生成回答并人工标注幻觉部分。&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Question Answering&lt;/strong>：从MS MARCO选择与生活相关的QA，每个问题保留三段提取内容，然后使用LLM根据内容回答问题。&lt;/li>
+&lt;li>&lt;strong>Data-to-text Writing&lt;/strong>：从Yelp数据集选择有关商家的结构化信息和用户的评论，用LLM生成对商家的描述。如果数据出现空值而大模型将其解释为“假”，认为这是出现了幻觉。&lt;/li>
+&lt;li>&lt;strong>News Summarization&lt;/strong>：数据来自CNN/Daily Mail dataset+某新闻平台的新闻，使用LLM对每篇内容生成摘要。&lt;/li>
+&lt;/ul>
+&lt;p>使用的LLM：GPT-3.5-turbo-0613、GPT-4-0613、Mistral-7b-Instruct、Llama-2-7B-chat、 Llama-2-13B-chat、 Llama-2-70B-chat&lt;/p>
+&lt;p>每个任务都用6个模型跑一遍，得到6个回答。&lt;/p>
+&lt;h2 id="5result">5.Result&lt;/h2>
+&lt;p>各项任务中幻觉类型的比例：&lt;/p>
+&lt;p>&lt;img alt="f2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/f2.png">&lt;/p>
+&lt;p>如图2所示，在上下文中无根据的信息生成显著多于与上下文冲突的信息生成，尤其是在问答任务中。在两大类无根据信息和冲突信息中，更严重的幻觉，即明显的无根据信息和明显的冲突信息，占据了相当大的比例。这一观察结果说明即使有RAG，还是存在严重幻觉。&lt;/p>
+&lt;BR>
+&lt;p>&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t2.png">&lt;/p>
+&lt;p>数据转文本的任务幻觉率最高，可能与JSON格式有关。另外，较新的新闻的幻觉率不比过时新闻高，可能是由于较新的新闻的文本长度较短。&lt;/p>
+&lt;BR>
+&lt;p>各模型出现幻觉的比例：&lt;/p>
+&lt;p>（span、density什么意思）&lt;/p>
+&lt;p>&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t3.png">&lt;/p>
+&lt;p>表3显示，在我们收集的数据中，OpenAI的两个模型表现出显著较低的幻觉率。具体来说，GPT-4-0613的幻觉频率最低。为了更清晰地比较不同模型的幻觉率，我们计算了每个模型在三个任务中的幻觉密度。幻觉密度定义为每一百个单词响应中平均出现的幻觉跨度数。在Llama2系列中，除了数据总文本写作任务外，模型规模与幻觉密度之间存在明显的负相关关系。尽管Mistral-7B-Instruct模型在各种基准和排行榜上的表现强劲（Zheng等人，2023），但它生成的包含幻觉的回答数量最多。&lt;/p>
+&lt;BR>
+&lt;p>幻觉与文本长度的关系：&lt;/p>
+&lt;p>&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t4.png">&lt;/p>
+&lt;p>对于上下文长度（CLB），只有新闻摘要呈现出上下文越长，越容易幻觉的特点。&lt;/p>
+&lt;p>对于回答长度（RLB），都有回答越长，越容易幻觉的特点。&lt;/p>
+&lt;BR>
+&lt;p>幻觉与位置的关系：&lt;/p>
+&lt;p>在问答和新闻摘要任务中，幻觉更倾向于出现在回答的末尾。数据到文本写作任务在前半部分较易出现幻觉。&lt;/p></description></item><item><title>CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation</title><link>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</link><pubDate>Fri, 02 May 2025 23:17:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</guid><description>&lt;p>&lt;a href="https://arxiv.org/abs/2504.12560">CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation&lt;/a>&lt;/p>
 &lt;p>只挂了arxiv，粗看，了解一下各模块的实现方式。&lt;/p>
 &lt;h2 id="1motivation">1.Motivation&lt;/h2>
 &lt;p>现有的RAG框架主要是静态检索，且依赖于语义相似性和关联性，这些方法优先考虑主题相关的文档，而并非提供解释或因果关系的文档。这导致响应结果是基于事实的，但是没能理解因果关系。&lt;/p>
