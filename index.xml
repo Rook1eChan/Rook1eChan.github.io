@@ -185,7 +185,7 @@ $$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot
 &lt;p>&lt;img alt="nqques" loading="lazy" src="https://Rook1eChan.github.io/DAPR/NQques.png">&lt;/p>
 &lt;BR>
 &lt;h3 id="32datasets">3.2Datasets&lt;/h3>
-&lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA（具体处理方式见附录A）&lt;/p>
+&lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA（具体处理方式见附录A）有语料库的直接用，没有的把黄金段落文本收集起来当语料库。（也是很神奇）&lt;/p>
 &lt;BR>
 &lt;h3 id="33evaluation">3.3Evaluation&lt;/h3>
 &lt;p>使用&lt;strong>nDCG@10&lt;/strong>和recall@100做指标。&lt;/p>
