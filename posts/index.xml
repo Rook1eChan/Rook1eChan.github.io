@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.148.0</generator><language>zh-CN</language><lastBuildDate>Tue, 08 Jul 2025 17:02:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>RAG 数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/rag-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/rag-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</guid><description>&lt;blockquote>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.148.1</generator><language>zh-CN</language><lastBuildDate>Thu, 17 Jul 2025 10:07:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>RAG 数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/rag-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/rag-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</guid><description>&lt;blockquote>
 &lt;p>1.使用LLM生成问题及答案&lt;/p>
 &lt;p>2.使用标注数据集&lt;/p>&lt;/blockquote>
 &lt;h3 id="1lightrag">1.LightRAG&lt;/h3>
@@ -28,7 +28,43 @@
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 4. What are the suggested changes to current policies mentioned by the guests?
 &lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 5. Are collaborations between tech companies and governments discussed and how?
 &lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="评价标准">评价标准&lt;/h4>
-&lt;p>不使用黄金标准答案，使用LLM评价。包括&lt;/p></description></item><item><title>BERT</title><link>https://Rook1eChan.github.io/posts/bert/</link><pubDate>Tue, 08 Jul 2025 17:02:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/bert/</guid><description>&lt;h1 id="1介绍">1.介绍&lt;/h1>
+&lt;p>不使用黄金标准答案，使用LLM评价。包括&lt;/p></description></item><item><title>博客 | Stop Saying RAG Is Dead</title><link>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</link><pubDate>Thu, 17 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</guid><description>&lt;p>这是一个系列博客，包括五篇文章。博客地址：&lt;a href="https://hamel.dev/notes/llm/rag/not_dead.html">Stop Saying RAG Is Dead – Hamel’s Blog&lt;/a>&lt;/p>
+&lt;p>作者批驳了“RAG已死”的说法，认为真正被淘汰的是“Chuck documents into a vector database, do cosine similarity, call it a day. ”的过时的RAG。RAG技术仍在进化，在后面的的文章里可以看到在检索、评估等方面上的创新。很高兴看到有人对RAG持积极态度，毕竟在一个有希望的领域进行研究学习更有动力。&lt;/p>
+&lt;p>五篇文章的简介如下：&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th style="text-align: left">标题&lt;/th>
+&lt;th>内容简介&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p1-intro.html">Part 1&lt;/a>: &lt;strong>I don’t use RAG, I just retrieve documents&lt;/strong>&lt;/td>
+&lt;td>Ben Clavié 介绍了RAG的现状&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p2-evals.html">Part 2&lt;/a>: &lt;strong>Modern IR Evals For RAG&lt;/strong>&lt;/td>
+&lt;td>评估是必不可少的步骤，高质量的benchmark有助于我们选择更好的方法。Nandan Thakur （BIER作者）认为传统的IR指标不适合评估RAG的表现，应该采用新的指标&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p3_reasoning.html">Part 3&lt;/a>: &lt;strong>Optimizing Retrieval with Reasoning Models&lt;/strong>&lt;/td>
+&lt;td>Orion Weller 提出了一种能遵循instruct的检索系统，在检索时就进行推理，优于传统的语义检索&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p4_late_interaction.html">Part 4&lt;/a>: &lt;strong>Late Interaction Models For RAG&lt;/strong>&lt;/td>
+&lt;td>Antoine Chaffin 介绍了ColBERT这类迟交互、多向量模型&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p5_map.html">Part 5&lt;/a>: &lt;strong>RAG with Multiple Representations&lt;/strong>&lt;/td>
+&lt;td>Bryan Bischof and Ayush Chaurasia 提出，我们需要对不同模态的问题智能化的选用不用的指标&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;BR>
+&lt;h1 id="p1-i-dont-use-rag-i-just-retrieve-documents">P1: I don’t use RAG, I just retrieve documents&lt;/h1>
+&lt;p>现在有一些说法，认为长上下文窗口的出现使得我们不再需要RAG了。&lt;/p></description></item><item><title>BERT</title><link>https://Rook1eChan.github.io/posts/bert/</link><pubDate>Tue, 08 Jul 2025 17:02:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/bert/</guid><description>&lt;p>参考：https://zhuanlan.zhihu.com/p/403495863&lt;/p>
+&lt;h1 id="1介绍">1.介绍&lt;/h1>
 &lt;p>BERT(Bidirectional Encoder Representation from Transformers)是2018年10月由Google AI研究院提出的一种预训练模型，该模型在机器阅读理解顶级水平测试&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=SQuAD1.1&amp;amp;zhida_source=entity">SQuAD1.1&lt;/a>中表现出惊人的成绩: 全部两个衡量指标上全面超越人类，并且在11种不同NLP测试中创出SOTA表现，包括将GLUE基准推高至80.4% (绝对改进7.6%)，&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=MultiNLI&amp;amp;zhida_source=entity">MultiNLI&lt;/a>准确度达到86.7% (绝对改进5.6%)，成为NLP发展史上的里程碑式的模型成就。&lt;/p>
 &lt;p>BERT的网络架构使用的是&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=%E3%80%8AAttention+is+all+you+need%E3%80%8B&amp;amp;zhida_source=entity">《Attention is all you need》&lt;/a>中提出的多层Transformer结构。其最大的特点是抛弃了传统的RNN和CNN，通过Attention机制将任意位置的两个单词的距离转换成1，有效的解决了NLP中棘手的长期依赖问题。Transformer的结构在NLP领域中已经得到了广泛应用。&lt;/p>
 &lt;BR>
@@ -39,9 +75,19 @@
 &lt;h2 id="21embedding">2.1Embedding&lt;/h2>
 &lt;p>Embedding由三种Embedding求和而成：&lt;/p>
 &lt;p>&lt;img alt="p2" loading="lazy" src="https://Rook1eChan.github.io/bert/p2.jpg">&lt;/p>
-&lt;p>token embedding&lt;/p>
+&lt;p>&lt;strong>token embedding&lt;/strong>&lt;/p>
 &lt;p>将输入的文本进行Word Piece分词，如playing切割成play，##ing，使用Word Piece是为了解决未登录词。tokenization后，在开头插入[CLS]，在每句话的末尾插入[SEP]。[CLS]表示该特征用于分类模型，对非分类模型，该符号可以省去。[SEP]表示分句符号，用于断开输入语料中的两个句子。&lt;/p>
-&lt;p>Bert 在处理英文文本时只需要 30522 个词，Token Embeddings 层会将每个词转换成 768 维向量，例子中 5 个Token 会被转换成一个 (6, 768) 的矩阵或 (1, 6, 768) 的张量。&lt;/p></description></item><item><title>Retrieval_Learning</title><link>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</link><pubDate>Mon, 07 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</guid><description>&lt;p>&lt;em>简介：检索相关算法的学习&lt;/em>&lt;/p>
+&lt;p>Bert 在处理英文文本时只需要 30522 个词，Token Embeddings 层会将每个词转换成 768 维向量，如下图的例子中， 5 个Token 会被转换成一个 (5, 768) 的矩阵或 (1, 5, 768) 的张量。&lt;/p>
+&lt;p>&lt;img alt="p3" loading="lazy" src="https://Rook1eChan.github.io/bert/p3.jpg">&lt;/p>
+&lt;BR>
+&lt;p>&lt;strong>segment embedding&lt;/strong>&lt;/p>
+&lt;p>用来区分两种句子。bert在训练时包括两种任务，其一是MLM（masked language model，掩码语言模型），就是遮住某个词让模型去预测；其二是NSP（next sentence prediction，下一句预测），输入两个句子，让模型判断是否相关。这时候就需要segment embedding对两个句子做区别。&lt;/p>
+&lt;p>进行问答等需要预测下一句的任务时，segment embedding层把0赋值给第一个句子的各token，把1赋值给第二个句子的各token。在文本分类任务时，segment embedding全部为0。&lt;/p>
+&lt;p>&lt;img alt="p4" loading="lazy" src="https://Rook1eChan.github.io/bert/p4.jpg">&lt;/p>
+&lt;BR>
+&lt;p>&lt;strong>position embedding&lt;/strong>&lt;/p>
+&lt;p>和transformer的实现不同，不是固定的三角函数，而是可学习的参数。&lt;/p>
+&lt;p>Transformer 中通过植入关于 Token 的相对位置或者绝对位置信息来表示序列的顺序信息。作者测试用学习的方法来得到 Position Embeddings，最终发现固定位置和相对位置效果差不多，所以最后用的是固定位置的，而正弦可以处理更长的 Sequence，且可以用前面位置的值线性表示后面的位置。&lt;/p></description></item><item><title>Retrieval_Learning</title><link>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</link><pubDate>Mon, 07 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</guid><description>&lt;p>&lt;em>简介：检索相关算法的学习&lt;/em>&lt;/p>
 &lt;BR>
 &lt;h1 id="1tf-idf">1.TF-IDF&lt;/h1>
 &lt;h2 id="11原理">1.1原理&lt;/h2>
