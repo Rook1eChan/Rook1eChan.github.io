@@ -1,34 +1,108 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.148.1</generator><language>zh-CN</language><lastBuildDate>Thu, 17 Jul 2025 10:07:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>RAG 数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/rag-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/rag-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</guid><description>&lt;blockquote>
-&lt;p>1.使用LLM生成问题及答案&lt;/p>
-&lt;p>2.使用标注数据集&lt;/p>&lt;/blockquote>
-&lt;h3 id="1lightrag">1.LightRAG&lt;/h3>
-&lt;h4 id="数据集">数据集&lt;/h4>
-&lt;p>使用&lt;a href="https://arxiv.org/abs/2409.05591">MemoRAG&lt;/a>提出的Benchmark。&lt;/p>
-&lt;p>在UltraDomain里，包含多个领域的数据，每个数据包括多本书。以cs为例，共含有100本书和100个对应的问题。该领域专注于计算机科学，涵盖数据科学和软件工程的关键领域。它特别强调机器学习和大数据处理，内容涉及推荐系统、分类算法以及使用Spark进行实时分析。：&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">input&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">How&lt;/span> &lt;span class="n">does&lt;/span> &lt;span class="n">Spark&lt;/span> &lt;span class="n">Streaming&lt;/span> &lt;span class="n">enable&lt;/span> &lt;span class="n">real&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">time&lt;/span> &lt;span class="n">data&lt;/span> &lt;span class="n">processing&lt;/span>&lt;span class="err">?&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">answers&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;Spark Streaming extends ...... &amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">context&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Whole Book......&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">length&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">131651&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">context_id&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">7&lt;/span>&lt;span class="n">bcef8714a477fd61fc8fb0d499b2cc3&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">_id&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">b2fd8d9c6d1499d521d778ce3d6d06fa&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">label&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">cs&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">meta&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;title&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Machine Learning With Spark&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;authors&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Nick Pentreath&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>数据集地址：&lt;a href="https://huggingface.co/datasets/TommyChien/UltraDomain">TommyChien/UltraDomain · Datasets at Hugging Face&lt;/a>&lt;/p>
-&lt;h4 id="问题生成">问题生成&lt;/h4>
-&lt;p>生成问题的方法来自于&lt;a href="https://arxiv.org/abs/2404.16130">From Local to Global: A Graph RAG Approach to Query-Focused Summarization&lt;/a>&lt;/p>
-&lt;p>提供文本，让大模型生成K个使用该数据集的用户身份（比如数据集是财经新闻，user就可能是收集金融市场趋势的财经记者），对于每个用户再生成N个任务，每个用户-任务提出M个高层次问题（理解整个数据集、无需提取具体事实）&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> User: A tech journalist looking for insights and trends in the tech industry
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Task: Understanding how tech leaders view the role of policy and regulation
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Questions:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1. Which episodes deal primarily with tech policy and government regulation?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2. How do guests perceive the impact of privacy laws on technology development?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 3. Do any guests discuss the balance between innovation and ethical considerations?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 4. What are the suggested changes to current policies mentioned by the guests?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 5. Are collaborations between tech companies and governments discussed and how?
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h4 id="评价标准">评价标准&lt;/h4>
-&lt;p>不使用黄金标准答案，使用LLM评价。包括&lt;/p></description></item><item><title>博客 | Stop Saying RAG Is Dead</title><link>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</link><pubDate>Thu, 17 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</guid><description>&lt;p>这是一个系列博客，包括五篇文章。博客地址：&lt;a href="https://hamel.dev/notes/llm/rag/not_dead.html">Stop Saying RAG Is Dead – Hamel’s Blog&lt;/a>&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on Chan's Blog</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on Chan's Blog</description><generator>Hugo -- 0.148.2</generator><language>zh-CN</language><lastBuildDate>Sat, 16 Aug 2025 21:23:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>LumberChunker: Long-Form Narrative Document Segmentation 论文阅读</title><link>https://Rook1eChan.github.io/posts/lumberchunker/</link><pubDate>Sat, 16 Aug 2025 21:23:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/lumberchunker/</guid><description>&lt;p>&lt;em>EMNLP2024&lt;/em>&lt;/p>
+&lt;h1 id="0主要贡献">0.主要贡献&lt;/h1>
+&lt;ul>
+&lt;li>提出了Lumberchunker文本分割方法&lt;/li>
+&lt;li>提出了GuntenQA数据集&lt;/li>
+&lt;li>验证了Lumberchunker在下游RAG任务上的效果&lt;/li>
+&lt;/ul>
+&lt;BR>
+&lt;h1 id="1lumberchunker">1.LumberChunker&lt;/h1>
+&lt;p>&lt;img alt="overview" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p1.png">&lt;/p>
+&lt;p>使用LLM动态的将文档分割为语义独立的片段。每个片段的长短是不固定的，确保每个片段的语义完整性、独立性。也就是说分割后，每一段包含的语义是完整的，同时与其它段有区别。由LLM来确定合适的分割点，这一决策过程考虑到文本的结构和语义，从而能够创建出大小最优且上下文连贯的片段。&lt;/p>
+&lt;p>1.先按照paragraph分割目标文档，然后把paragraph顺序连接，直到累计的token数超过一个阈值 $\theta$，形成 $ G_i$。该阈值如何设置后文会说。$\theta$ 应该足够大，防止把具有相关性的段落分开；同时 $\theta$​ 也要足够小，防止过多内容影响LLM进行推理。&lt;/p>
+&lt;p>2.让LLM寻找 $G_i$ 中“语义断层”的地方，作为分割点。分割点之前即形成一个chunk。剩下的内容继续与paragraph顺序拼接、超过阈值停止、LLM分割……分割整体是串行进行的。&lt;/p>
+&lt;BR>
+&lt;h1 id="2gutenqa">2.GutenQA&lt;/h1>
+&lt;p>数据来源于Project Gutenberg电子图书馆。&lt;/p>
+&lt;p>1.100本英文书籍，手动提取HTML内容（附录里和NarrativeQA进行了对比，手动提取没有编码错误等问题）&lt;/p>
+&lt;p>2.使用ChatGPT3.5为每本书生成问题、答案和包含答案的原文片段，人工为每本书筛选30个高质量问题。&lt;/p>
+&lt;p>问题需要基于给定片段中的具体信息，&lt;u>且不能用书中的其它地方的信息来回答&lt;/u>。问题大多以‘what,’ ‘when,’ ‘where’ 开头， ‘why’ and ‘how’较少。&lt;/p>
+&lt;p>3.原文片段需要简短，以确保任何分块方法都不会把它切开。评估方法是在检索到的文本中精确匹配字符串。&lt;/p>
+&lt;BR>
+&lt;h1 id="3experiments">3.Experiments&lt;/h1>
+&lt;h3 id="31-propmt的阈值怎么选择">3.1 propmt的阈值怎么选择&lt;/h3>
+&lt;p>这个阈值就是paragraph顺序连接的阈值 $\theta$​ 。由于是LLM寻找分割点，token过长会影响模型的推理能力。&lt;/p>
+&lt;p>在不同阈值下使用DCG评估效果。DCG表明了是否检索到，检索结果是否靠前。&lt;/p>
+&lt;p>&lt;img alt="p2" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p2.png">&lt;/p>
+&lt;h3 id="32-lumberchunk是否增强了检索效果">3.2 Lumberchunk是否增强了检索效果？&lt;/h3>
+&lt;p>与其它分块基准进行对比。评估指标为DCG@K、RECALL@K。&lt;/p>
+&lt;p>&lt;img alt="p3" loading="lazy" src="lumberchunker/p3.png">&lt;/p>
+&lt;p>此外，注意到semantic chunk和paragraph level的指标并没有随K有效增加，表明其在大规模文档检索方面的局限性。&lt;/p>
+&lt;p>proposition level的引用在哪？？？&lt;/p>
+&lt;p>附录F展示了各分割方法的统计结果：&lt;/p>
+&lt;p>&lt;img alt="p3" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p3.png">&lt;/p>
+&lt;p>Lumberchunk切分后的块平均长度为334，比预设的550阈值低了40%，这说明LLM有效的对文本进行了切分，而不是持续选择靠近末尾的ID。说明未出现Lost in the Middle现象。&lt;/p>
+&lt;blockquote>
+&lt;p>在论文《Lost in the Middle: How Language Models Use Long Contexts》中，作者发现，当针对长文本的不同位置信息设计专门问题，测试大语言模型对不同位置信息的记忆能力时，模型的性能呈现一种 “U 型” 表现，即对于前段与后段的信息有着较强的关注与记忆能力，能较好地解决问题，而对于中段信息的利用则有所逊色。&lt;/p>
+&lt;p>这种现象的产生可能是由于训练数据中的无意偏差。LLM 的预训练侧重于根据最近的一些 token 预测下一个 token，而在微调过程中，真正的指令又往往位于上下文开始的位置，这在不知不觉中引入了一种立场偏见，让 LLM 认为重要信息总是位于上下文的开头和结尾。&lt;/p></description></item><item><title>论文阅读 | DeepSeek-VL: Towards Real-World Vision-Language Understanding</title><link>https://Rook1eChan.github.io/posts/deepseekvl/</link><pubDate>Thu, 24 Jul 2025 16:00:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/deepseekvl/</guid><description>&lt;h1 id="deepseek-vl-towards-real-world-vision-language-understanding">DeepSeek-VL: Towards Real-World Vision-Language Understanding&lt;/h1>
+&lt;h2 id="0-abstract">0. Abstract&lt;/h2>
+&lt;p>本文的主要贡献：&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>数据集构建：构建了具有多样性和可扩展性，广泛覆盖真实世界场景的数据集。包括网页截图、PDF文档、OCR文本、图表以及知识型内容（如专家知识、教科书）等。此外，根据真实用户场景将数据进行分类，并据此创建了指令微调数据集。通过该数据集的微调，显著提升了模型在实际应用中的用户体验。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>创新的模型架构：采用了混合视觉编码器（hybrid vision encoder），能在固定的token预算下高效处理高分辨率图像（1024*1024），同时保持较低的计算开销。该架构保证模型多种视觉任务中能捕捉到关键的语义和细节信息。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>创新的训练策略：既使LLM学会新模态，也保证原有的的语言能力不退化。调控语言和视觉的竞争关系，实现两种模态的均衡融合。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;BR>
+&lt;h2 id="1-introduction">1. Introduction&lt;/h2>
+&lt;p>大语言模型的巨大成功引发了人们对多模态模型的追求。这些模型能同时理解语言和图像，在执行现实世界任务时展现出巨大的潜力。&lt;/p>
+&lt;p>目前出现了很多开源的VLM方案，在benchmark上表现优秀，但在现实世界中表现不佳。大都存在以下问题（本文的改进方案）：&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>许多方案将重心放在指令微调阶段。作者认为应当使用大量的视觉-语言数据进行充分预训练。（深度预训练）&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>现有方案多使用学术上的数据集进行微调，缺乏现实世界经验。（精心构建数据集）&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>现有方案多采用vision transformer与预训练语言模型结合的方式，这类模型分辨率低，不能胜任OCR或微小物体识别任务。（高分辨率处理架构）&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>有些模型在长期的多模态训练中会出现语言能力的退化。应采用一种既保留语言能力，又掌握新模态能力的训练方式。（平衡多模态特征的训练策略）&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;BR>
+&lt;p>DeepSeek-VL具有通用的多模态理解能力，能够处理逻辑图、网页、公式识别、科学文献、自然图像等。&lt;/p>
+&lt;p>DeepSeek-VL的优势：&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>Deepseek-VL的预训练数据涵盖了广泛的世界知识，包括网络爬虫、网页代码、电子书、教育资料、arxiv文章等等，全面覆盖现实世界中的场景，数据质量高，具有广泛性和实用性。同时作者团队还精心设计了指令调优数据集，具体来说，作者从网上收集了GPT-4V和Gemini的真实案例，并进行分类，为每个测试图像选择合适的prompt。该分类体系还用于构建评估数据集。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>视觉模块采用混合视觉编码器架构，384$\times$384的文本对齐编码器用于粗粒度语义提取，1024$\times$1024的高分辨率编码器用于捕捉细节视觉信息。两者结合，可以将1024$\times$1024的图像压缩为576个token，在视觉表征和token开销间取得平衡，使视觉模块支持文-图交织处理和多轮推理场景。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>为了使多模态模型不出现语言能力的退化：1.保持至少70%的语言数据，这对维护模型内部的语言知识完整性至关重要。2.作者提出了模态预热(modality warm-up)策略。该方法通过在训练过程中动态调整模态比例，逐步引入更多视觉-语言数据。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>在迭代模型时，首先在小模型上进行实验。然而，形如1B的小模型在benchmark上难以展现理想性能，无法真实的反映模型的实际表现。因此，作者把评估措施从多选改为了各选项的困惑度（PPL）对比；此外，为避免指令跟随能力成为瓶颈，在预训练阶段我们混合了少量指令调优数据。通过这种方式，我们既能利用1B模型获得合理性能表现，又能更精准地量化实验中每次迭代的影响效果。&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;BR>
+&lt;h2 id="2-data-construction">2. Data Construction&lt;/h2>
+&lt;p>数据集包括两大模块：VL-Pretrain数据、VL-SFT数据&lt;/p>
+&lt;p>VL-Pretrain整合了多源视觉文本数据，旨在强化模型的基础跨模态理解能力。&lt;/p>
+&lt;p>VL-SFT相对较小，主要用于训练模型完成特定下游任务。&lt;/p>
+&lt;p>在stage1，VL-Pretrain用于预热VL adapter&lt;/p>
+&lt;p>stage2，VL-Pretrain用于联合预训练VL adaptor和VL model&lt;/p>
+&lt;p>stage3，使用VL-SFT微调整个模型&lt;/p>
+&lt;BR>
+&lt;h3 id="21-vl-pretraining-data">2.1 VL-Pretraining Data&lt;/h3>
+&lt;p>分为以下7个类别：&lt;/p>
+&lt;p>Interleaved image-text data（交错式图文数据，使模型对多模态输入具有更好的上下文学习能力），MMC4、Wiki等&lt;/p>
+&lt;p>Image caption data（图像描述，包含高质量图-文对），Capsfusion、TaiSu等&lt;/p>
+&lt;p>Table and chart data（图表数据），Chart2text、Unichart&lt;/p>
+&lt;p>Web Code data（网页代码，使模型具有从图形界面或图表重建代码的能力。从Stack数据集中的jupyter notebook清洗出2million图像-代码对。最终选择1.1million作为是主要训练集，包括一张图像-至少5行代码）&lt;/p>
+&lt;p>OCR data（文档光学字符识别数据，作者构建了一个中英混合的OCR数据集，包括两部分：1.arxiv文章 2.电子书和教育材料，来自Anna&amp;rsquo;s Archive）&lt;/p>
+&lt;p>Scene text OCR（增强模型识别场景中文本的能力）ArT、MLT-17等。&lt;/p>
+&lt;p>Text-only corpus（纯文本，和DeepSeek LLM的一致）&lt;/p>
+&lt;h3 id="22-vl-sft-data">2.2 VL-SFT Data&lt;/h3>
+&lt;p>包括多个知名开源数据集ShareGPT4V、LAION-GPTV等。&lt;/p></description></item><item><title>博客 | Stop Saying RAG Is Dead</title><link>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</link><pubDate>Thu, 17 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</guid><description>&lt;p>这是一个系列博客，包括五篇文章。博客地址：&lt;a href="https://hamel.dev/notes/llm/rag/not_dead.html">Stop Saying RAG Is Dead – Hamel’s Blog&lt;/a>&lt;/p>
 &lt;p>作者批驳了“RAG已死”的说法，认为真正被淘汰的是“Chuck documents into a vector database, do cosine similarity, call it a day. ”的过时的RAG。RAG技术仍在进化，在后面的的文章里可以看到在检索、评估等方面上的创新。很高兴看到有人对RAG持积极态度，毕竟在一个有希望的领域进行研究学习更有动力。&lt;/p>
 &lt;p>五篇文章的简介如下：&lt;/p>
 &lt;table>
@@ -272,59 +346,39 @@
 &lt;p>对于回答长度（RLB），都有回答越长，越容易幻觉的特点。&lt;/p>
 &lt;BR>
 &lt;p>幻觉与位置的关系：&lt;/p>
-&lt;p>在问答和新闻摘要任务中，幻觉更倾向于出现在回答的末尾。数据到文本写作任务在前半部分较易出现幻觉。&lt;/p></description></item><item><title>CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation</title><link>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</link><pubDate>Fri, 02 May 2025 23:17:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/cdf-rag-causal-dynamic-feedback-for-adaptive-retrieval-augmented-generation/</guid><description>&lt;p>&lt;a href="https://arxiv.org/abs/2504.12560">CDF-RAG: Causal Dynamic Feedback for Adaptive Retrieval-Augmented Generation&lt;/a>&lt;/p>
-&lt;p>只挂了arxiv，粗看，了解一下各模块的实现方式。&lt;/p>
-&lt;h2 id="1motivation">1.Motivation&lt;/h2>
-&lt;p>现有的RAG框架主要是静态检索，且依赖于语义相似性和关联性，这些方法优先考虑主题相关的文档，而并非提供解释或因果关系的文档。这导致响应结果是基于事实的，但是没能理解因果关系。&lt;/p>
-&lt;p>此外，基于大规模观察语料库训练的语言模型倾向于建模共现模式而非因果依赖，这使得它们容易将相关性与因果关系混淆——尤其是在存在不完整或模糊证据的情况下。这些局限性在多跳检索中尤为明显。&lt;/p>
-&lt;p>另外，用户的提问可能是模糊的，现有机制缺乏动态适应和因果机制。&lt;/p>
-&lt;h2 id="2contributions">2.Contributions&lt;/h2>
-&lt;p>本文提出了CDFRAG框架，将强化学习查询优化、多跳因果图检索和基于对齐的幻觉检测整合到一个推理循环中。&lt;/p>
-&lt;p>证明了基于强化学习的查询重写显著提升了多跳因果推理和检索质量，优于先前的细化方法。&lt;/p>
-&lt;p>本方法在四个数据集中均sota，在因果正确性、一致性和可解释性方面均有所改进。&lt;/p>
-&lt;h2 id="3method">3.Method&lt;/h2>
-&lt;h3 id="1构建因果知识图谱">1.构建因果知识图谱&lt;/h3>
-&lt;p>使用UniCausal提取因果对（Causal，Effect）。经过GPT4验证后，编码为（C，E，Relation）并存入有向图G。&lt;/p>
-&lt;h3 id="2根据强化学习进行查询重写">2.根据强化学习进行查询重写&lt;/h3>
-&lt;p>给定用户初始查询q，重写q的过程是一个马尔可夫决策过程（MDP），有三种操作：&lt;/p>
-&lt;ol>
-&lt;li>扩展：添加相关的因果因素&lt;/li>
-&lt;li>简化：去除多余的细节&lt;/li>
-&lt;li>分解：复杂查询拆解为子查询&lt;/li>
-&lt;/ol>
-&lt;p>策略通过SFT微调生成，然后使用PPO优化。&lt;/p>
-&lt;ol>
-&lt;li>&lt;strong>监督微调（Supervised Fine-Tuning, SFT）&lt;/strong>&lt;/li>
-&lt;/ol>
-&lt;ul>
-&lt;li>&lt;strong>目的&lt;/strong>：用标注的示范数据（如人工修正的样本）初始化策略 $$\pi_\theta(a|s)$$，使其初步具备期望的行为模式。&lt;/li>
-&lt;li>&lt;strong>方法&lt;/strong>：通过最大化对数似然来微调模型参数，损失函数为：
-$$L_{\text{SFT}} = -\sum_{t=1}^{T} \log P_\phi(y_t \mid y_{&lt;t}, x)$$
-&lt;ul>
-&lt;li>$$y_t$$ 是时间步 $$t$$ 的正确动作（或词元）。&lt;/li>
-&lt;li>$$y_{&lt;t}$$ 表示历史信息（之前的动作或上下文）。&lt;/li>
-&lt;li>$$x$$ 是输入状态（如提示或环境状态）。&lt;/li>
-&lt;li>核心是让模型输出的概率分布贴近人工标注的数据。&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;ol start="2">
-&lt;li>&lt;strong>近端策略优化（Proximal Policy Optimization, PPO）&lt;/strong>&lt;/li>
-&lt;/ol>
-&lt;ul>
-&lt;li>&lt;strong>目的&lt;/strong>：在SFT的基础上，通过与环境交互进一步优化策略，平衡探索与利用，同时避免训练不稳定。&lt;/li>
-&lt;li>&lt;strong>损失函数&lt;/strong>：
-$$L_{\text{PPO}}(\theta) = \mathbb{E}_t \left[ \min\left( \text{比率项} \cdot A_t, \text{截断后的比率项} \cdot A_t \right) \right]$$
-&lt;ul>
-&lt;li>&lt;strong>比率项&lt;/strong>：新策略与旧策略的概率比&lt;/li>
-&lt;li>$$\frac{\pi_\theta(a|s)}{\pi_{\theta_{old}}(at|st)}$$，衡量策略变化程度。&lt;/li>
-&lt;li>&lt;strong>优势函数 $$A_t$$&lt;/strong>：评估动作 $$a$$ 在状态 $$s$$ 下比平均表现好多少（由评论家模型或蒙特卡洛估计）。&lt;/li>
-&lt;li>&lt;strong>截断机制&lt;/strong>：限制比率项在 $$[1-\epsilon, 1+\epsilon]$$ 之间，防止单步更新过大，确保训练稳定。&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;h3 id="3语义因果双路径检索">3.语义+因果双路径检索&lt;/h3>
-&lt;p>使用MiniLM对优化后的查询进行编码，在向量数据库进行相似性搜索。（整句话编码的稠密检索）&lt;/p></description></item><item><title>DAPR A Benchmark on Document-Aware Passage Retrieval</title><link>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</link><pubDate>Fri, 02 May 2025 16:41:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</guid><description>&lt;h2 id="1motivation">1.Motivation&lt;/h2>
+&lt;p>在问答和新闻摘要任务中，幻觉更倾向于出现在回答的末尾。数据到文本写作任务在前半部分较易出现幻觉。&lt;/p></description></item><item><title>RAG,QA相关数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/ragqa-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/ragqa-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</guid><description>&lt;blockquote>
+&lt;p>RAG，QA常用的数据集和评价标准
+多为知识密集型、问答型数据集&lt;/p>&lt;/blockquote>
+&lt;h1 id="数据集">数据集&lt;/h1>
+&lt;h2 id="1ultradomain">1.UltraDomain&lt;/h2>
+&lt;p>lightrag曾使用&lt;/p>
+&lt;p>使用&lt;a href="https://arxiv.org/abs/2409.05591">MemoRAG&lt;/a>提出的Benchmark。&lt;/p>
+&lt;p>在UltraDomain里，包含多个领域的数据，每个数据包括多本书。以cs为例，共含有100本书和100个对应的问题。该领域专注于计算机科学，涵盖数据科学和软件工程的关键领域。它特别强调机器学习和大数据处理，内容涉及推荐系统、分类算法以及使用Spark进行实时分析。：&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">input&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">How&lt;/span> &lt;span class="n">does&lt;/span> &lt;span class="n">Spark&lt;/span> &lt;span class="n">Streaming&lt;/span> &lt;span class="n">enable&lt;/span> &lt;span class="n">real&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">time&lt;/span> &lt;span class="n">data&lt;/span> &lt;span class="n">processing&lt;/span>&lt;span class="err">?&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">answers&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;Spark Streaming extends ...... &amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">context&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Whole Book......&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">length&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">131651&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">context_id&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">7&lt;/span>&lt;span class="n">bcef8714a477fd61fc8fb0d499b2cc3&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">_id&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">b2fd8d9c6d1499d521d778ce3d6d06fa&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">label&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">cs&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">meta&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;title&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Machine Learning With Spark&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;authors&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Nick Pentreath&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>数据集地址：&lt;a href="https://huggingface.co/datasets/TommyChien/UltraDomain">TommyChien/UltraDomain · Datasets at Hugging Face&lt;/a>&lt;/p>
+&lt;p>Lightrag使用LLM生成问题-答案对&lt;/p>
+&lt;p>生成问题的方法来自于&lt;a href="https://arxiv.org/abs/2404.16130">From Local to Global: A Graph RAG Approach to Query-Focused Summarization&lt;/a>&lt;/p>
+&lt;p>提供文本，让大模型生成K个使用该数据集的用户身份（比如数据集是财经新闻，user就可能是收集金融市场趋势的财经记者），对于每个用户再生成N个任务，每个用户-任务提出M个高层次问题（理解整个数据集、无需提取具体事实）&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> User: A tech journalist looking for insights and trends in the tech industry
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Task: Understanding how tech leaders view the role of policy and regulation
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Questions:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1. Which episodes deal primarily with tech policy and government regulation?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2. How do guests perceive the impact of privacy laws on technology development?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 3. Do any guests discuss the balance between innovation and ethical considerations?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 4. What are the suggested changes to current policies mentioned by the guests?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 5. Are collaborations between tech companies and governments discussed and how?
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;BR>
+&lt;h2 id="2dapr使用的数据集">2.DAPR使用的数据集&lt;/h2>
+&lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA&lt;/p></description></item><item><title>DAPR A Benchmark on Document-Aware Passage Retrieval</title><link>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</link><pubDate>Fri, 02 May 2025 16:41:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</guid><description>&lt;h2 id="1motivation">1.Motivation&lt;/h2>
 &lt;p>现有的神经检索（neural retrieval）的方法主要集中在短文本排序，在长篇文章中做检索效果并不好（由于自注意力机制token数量的限制；或者返回的文档过长，不便于用户使用）。另外，作者发现在先进检索器的检索错误中，半数错误与缺少上下文有关。&lt;/p>
 &lt;p>比如：在A剧场中演出过的演员有哪些？如果只检索关键字“A剧场”，可能找不到答案，需要结合上下文找到“……在这里演出过……”的内容才是真正答案。&lt;/p>
 &lt;p>因此，作者针对上下文强关联的任务建立了一个数据集，使用两类方法（hybrid retrieval with BM25、 contextualized passage representations）进行实验，并详细解释了实验结果。&lt;/p>
