@@ -1,491 +1,522 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chan's Blog</title><link>https://Rook1eChan.github.io/</link><description>Recent content on Chan's Blog</description><generator>Hugo -- 0.148.2</generator><language>zh-CN</language><lastBuildDate>Sat, 16 Aug 2025 21:23:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>LumberChunker: Long-Form Narrative Document Segmentation 论文阅读</title><link>https://Rook1eChan.github.io/posts/lumberchunker/</link><pubDate>Sat, 16 Aug 2025 21:23:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/lumberchunker/</guid><description>&lt;p>&lt;em>EMNLP2024&lt;/em>&lt;/p>
-&lt;h1 id="0主要贡献">0.主要贡献&lt;/h1>
-&lt;ul>
-&lt;li>提出了Lumberchunker文本分割方法&lt;/li>
-&lt;li>提出了GuntenQA数据集&lt;/li>
-&lt;li>验证了Lumberchunker在下游RAG任务上的效果&lt;/li>
-&lt;/ul>
-&lt;BR>
-&lt;h1 id="1lumberchunker">1.LumberChunker&lt;/h1>
-&lt;p>&lt;img alt="overview" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p1.png">&lt;/p>
-&lt;p>使用LLM动态的将文档分割为语义独立的片段。每个片段的长短是不固定的，确保每个片段的语义完整性、独立性。也就是说分割后，每一段包含的语义是完整的，同时与其它段有区别。由LLM来确定合适的分割点，这一决策过程考虑到文本的结构和语义，从而能够创建出大小最优且上下文连贯的片段。&lt;/p>
-&lt;p>1.先按照paragraph分割目标文档，然后把paragraph顺序连接，直到累计的token数超过一个阈值 $\theta$，形成 $ G_i$。该阈值如何设置后文会说。$\theta$ 应该足够大，防止把具有相关性的段落分开；同时 $\theta$​ 也要足够小，防止过多内容影响LLM进行推理。&lt;/p>
-&lt;p>2.让LLM寻找 $G_i$ 中“语义断层”的地方，作为分割点。分割点之前即形成一个chunk。剩下的内容继续与paragraph顺序拼接、超过阈值停止、LLM分割……分割整体是串行进行的。&lt;/p>
-&lt;BR>
-&lt;h1 id="2gutenqa">2.GutenQA&lt;/h1>
-&lt;p>数据来源于Project Gutenberg电子图书馆。&lt;/p>
-&lt;p>1.100本英文书籍，手动提取HTML内容（附录里和NarrativeQA进行了对比，手动提取没有编码错误等问题）&lt;/p>
-&lt;p>2.使用ChatGPT3.5为每本书生成问题、答案和包含答案的原文片段，人工为每本书筛选30个高质量问题。&lt;/p>
-&lt;p>问题需要基于给定片段中的具体信息，&lt;u>且不能用书中的其它地方的信息来回答&lt;/u>。问题大多以‘what,’ ‘when,’ ‘where’ 开头， ‘why’ and ‘how’较少。&lt;/p>
-&lt;p>3.原文片段需要简短，以确保任何分块方法都不会把它切开。评估方法是在检索到的文本中精确匹配字符串。&lt;/p>
-&lt;BR>
-&lt;h1 id="3experiments">3.Experiments&lt;/h1>
-&lt;h3 id="31-propmt的阈值怎么选择">3.1 propmt的阈值怎么选择&lt;/h3>
-&lt;p>这个阈值就是paragraph顺序连接的阈值 $\theta$​ 。由于是LLM寻找分割点，token过长会影响模型的推理能力。&lt;/p>
-&lt;p>在不同阈值下使用DCG评估效果。DCG表明了是否检索到，检索结果是否靠前。&lt;/p>
-&lt;p>&lt;img alt="p2" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p2.png">&lt;/p>
-&lt;h3 id="32-lumberchunk是否增强了检索效果">3.2 Lumberchunk是否增强了检索效果？&lt;/h3>
-&lt;p>与其它分块基准进行对比。评估指标为DCG@K、RECALL@K。&lt;/p>
-&lt;p>&lt;img alt="p3" loading="lazy" src="lumberchunker/p3.png">&lt;/p>
-&lt;p>此外，注意到semantic chunk和paragraph level的指标并没有随K有效增加，表明其在大规模文档检索方面的局限性。&lt;/p>
-&lt;p>proposition level的引用在哪？？？&lt;/p>
-&lt;p>附录F展示了各分割方法的统计结果：&lt;/p>
-&lt;p>&lt;img alt="p3" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p3.png">&lt;/p>
-&lt;p>Lumberchunk切分后的块平均长度为334，比预设的550阈值低了40%，这说明LLM有效的对文本进行了切分，而不是持续选择靠近末尾的ID。说明未出现Lost in the Middle现象。&lt;/p>
-&lt;blockquote>
-&lt;p>在论文《Lost in the Middle: How Language Models Use Long Contexts》中，作者发现，当针对长文本的不同位置信息设计专门问题，测试大语言模型对不同位置信息的记忆能力时，模型的性能呈现一种 “U 型” 表现，即对于前段与后段的信息有着较强的关注与记忆能力，能较好地解决问题，而对于中段信息的利用则有所逊色。&lt;/p>
-&lt;p>这种现象的产生可能是由于训练数据中的无意偏差。LLM 的预训练侧重于根据最近的一些 token 预测下一个 token，而在微调过程中，真正的指令又往往位于上下文开始的位置，这在不知不觉中引入了一种立场偏见，让 LLM 认为重要信息总是位于上下文的开头和结尾。&lt;/p></description></item><item><title>论文阅读 | DeepSeek-VL: Towards Real-World Vision-Language Understanding</title><link>https://Rook1eChan.github.io/posts/deepseekvl/</link><pubDate>Thu, 24 Jul 2025 16:00:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/deepseekvl/</guid><description>&lt;h1 id="deepseek-vl-towards-real-world-vision-language-understanding">DeepSeek-VL: Towards Real-World Vision-Language Understanding&lt;/h1>
-&lt;h2 id="0-abstract">0. Abstract&lt;/h2>
-&lt;p>本文的主要贡献：&lt;/p>
-&lt;ol>
-&lt;li>
-&lt;p>数据集构建：构建了具有多样性和可扩展性，广泛覆盖真实世界场景的数据集。包括网页截图、PDF文档、OCR文本、图表以及知识型内容（如专家知识、教科书）等。此外，根据真实用户场景将数据进行分类，并据此创建了指令微调数据集。通过该数据集的微调，显著提升了模型在实际应用中的用户体验。&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>创新的模型架构：采用了混合视觉编码器（hybrid vision encoder），能在固定的token预算下高效处理高分辨率图像（1024*1024），同时保持较低的计算开销。该架构保证模型多种视觉任务中能捕捉到关键的语义和细节信息。&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>创新的训练策略：既使LLM学会新模态，也保证原有的的语言能力不退化。调控语言和视觉的竞争关系，实现两种模态的均衡融合。&lt;/p>
-&lt;/li>
-&lt;/ol>
-&lt;BR>
-&lt;h2 id="1-introduction">1. Introduction&lt;/h2>
-&lt;p>大语言模型的巨大成功引发了人们对多模态模型的追求。这些模型能同时理解语言和图像，在执行现实世界任务时展现出巨大的潜力。&lt;/p>
-&lt;p>目前出现了很多开源的VLM方案，在benchmark上表现优秀，但在现实世界中表现不佳。大都存在以下问题（本文的改进方案）：&lt;/p>
-&lt;ol>
-&lt;li>
-&lt;p>许多方案将重心放在指令微调阶段。作者认为应当使用大量的视觉-语言数据进行充分预训练。（深度预训练）&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>现有方案多使用学术上的数据集进行微调，缺乏现实世界经验。（精心构建数据集）&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>现有方案多采用vision transformer与预训练语言模型结合的方式，这类模型分辨率低，不能胜任OCR或微小物体识别任务。（高分辨率处理架构）&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>有些模型在长期的多模态训练中会出现语言能力的退化。应采用一种既保留语言能力，又掌握新模态能力的训练方式。（平衡多模态特征的训练策略）&lt;/p>
-&lt;/li>
-&lt;/ol>
-&lt;BR>
-&lt;p>DeepSeek-VL具有通用的多模态理解能力，能够处理逻辑图、网页、公式识别、科学文献、自然图像等。&lt;/p>
-&lt;p>DeepSeek-VL的优势：&lt;/p>
-&lt;ol>
-&lt;li>
-&lt;p>Deepseek-VL的预训练数据涵盖了广泛的世界知识，包括网络爬虫、网页代码、电子书、教育资料、arxiv文章等等，全面覆盖现实世界中的场景，数据质量高，具有广泛性和实用性。同时作者团队还精心设计了指令调优数据集，具体来说，作者从网上收集了GPT-4V和Gemini的真实案例，并进行分类，为每个测试图像选择合适的prompt。该分类体系还用于构建评估数据集。&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>视觉模块采用混合视觉编码器架构，384$\times$384的文本对齐编码器用于粗粒度语义提取，1024$\times$1024的高分辨率编码器用于捕捉细节视觉信息。两者结合，可以将1024$\times$1024的图像压缩为576个token，在视觉表征和token开销间取得平衡，使视觉模块支持文-图交织处理和多轮推理场景。&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>为了使多模态模型不出现语言能力的退化：1.保持至少70%的语言数据，这对维护模型内部的语言知识完整性至关重要。2.作者提出了模态预热(modality warm-up)策略。该方法通过在训练过程中动态调整模态比例，逐步引入更多视觉-语言数据。&lt;/p>
-&lt;/li>
-&lt;li>
-&lt;p>在迭代模型时，首先在小模型上进行实验。然而，形如1B的小模型在benchmark上难以展现理想性能，无法真实的反映模型的实际表现。因此，作者把评估措施从多选改为了各选项的困惑度（PPL）对比；此外，为避免指令跟随能力成为瓶颈，在预训练阶段我们混合了少量指令调优数据。通过这种方式，我们既能利用1B模型获得合理性能表现，又能更精准地量化实验中每次迭代的影响效果。&lt;/p>
-&lt;/li>
-&lt;/ol>
-&lt;BR>
-&lt;h2 id="2-data-construction">2. Data Construction&lt;/h2>
-&lt;p>数据集包括两大模块：VL-Pretrain数据、VL-SFT数据&lt;/p>
-&lt;p>VL-Pretrain整合了多源视觉文本数据，旨在强化模型的基础跨模态理解能力。&lt;/p>
-&lt;p>VL-SFT相对较小，主要用于训练模型完成特定下游任务。&lt;/p>
-&lt;p>在stage1，VL-Pretrain用于预热VL adapter&lt;/p>
-&lt;p>stage2，VL-Pretrain用于联合预训练VL adaptor和VL model&lt;/p>
-&lt;p>stage3，使用VL-SFT微调整个模型&lt;/p>
-&lt;BR>
-&lt;h3 id="21-vl-pretraining-data">2.1 VL-Pretraining Data&lt;/h3>
-&lt;p>分为以下7个类别：&lt;/p>
-&lt;p>Interleaved image-text data（交错式图文数据，使模型对多模态输入具有更好的上下文学习能力），MMC4、Wiki等&lt;/p>
-&lt;p>Image caption data（图像描述，包含高质量图-文对），Capsfusion、TaiSu等&lt;/p>
-&lt;p>Table and chart data（图表数据），Chart2text、Unichart&lt;/p>
-&lt;p>Web Code data（网页代码，使模型具有从图形界面或图表重建代码的能力。从Stack数据集中的jupyter notebook清洗出2million图像-代码对。最终选择1.1million作为是主要训练集，包括一张图像-至少5行代码）&lt;/p>
-&lt;p>OCR data（文档光学字符识别数据，作者构建了一个中英混合的OCR数据集，包括两部分：1.arxiv文章 2.电子书和教育材料，来自Anna&amp;rsquo;s Archive）&lt;/p>
-&lt;p>Scene text OCR（增强模型识别场景中文本的能力）ArT、MLT-17等。&lt;/p>
-&lt;p>Text-only corpus（纯文本，和DeepSeek LLM的一致）&lt;/p>
-&lt;h3 id="22-vl-sft-data">2.2 VL-SFT Data&lt;/h3>
-&lt;p>包括多个知名开源数据集ShareGPT4V、LAION-GPTV等。&lt;/p></description></item><item><title>博客 | Stop Saying RAG Is Dead</title><link>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</link><pubDate>Thu, 17 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</guid><description>&lt;p>这是一个系列博客，包括五篇文章。博客地址：&lt;a href="https://hamel.dev/notes/llm/rag/not_dead.html">Stop Saying RAG Is Dead – Hamel’s Blog&lt;/a>&lt;/p>
-&lt;p>作者批驳了“RAG已死”的说法，认为真正被淘汰的是“Chuck documents into a vector database, do cosine similarity, call it a day. ”的过时的RAG。RAG技术仍在进化，在后面的的文章里可以看到在检索、评估等方面上的创新。很高兴看到有人对RAG持积极态度，毕竟在一个有希望的领域进行研究学习更有动力。&lt;/p>
-&lt;p>五篇文章的简介如下：&lt;/p>
-&lt;table>
-&lt;thead>
-&lt;tr>
-&lt;th style="text-align: left">标题&lt;/th>
-&lt;th>内容简介&lt;/th>
-&lt;/tr>
-&lt;/thead>
-&lt;tbody>
-&lt;tr>
-&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p1-intro.html">Part 1&lt;/a>: &lt;strong>I don’t use RAG, I just retrieve documents&lt;/strong>&lt;/td>
-&lt;td>Ben Clavié 介绍了RAG的现状&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p2-evals.html">Part 2&lt;/a>: &lt;strong>Modern IR Evals For RAG&lt;/strong>&lt;/td>
-&lt;td>评估是必不可少的步骤，高质量的benchmark有助于我们选择更好的方法。Nandan Thakur （BIER作者）认为传统的IR指标不适合评估RAG的表现，应该采用新的指标&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p3_reasoning.html">Part 3&lt;/a>: &lt;strong>Optimizing Retrieval with Reasoning Models&lt;/strong>&lt;/td>
-&lt;td>Orion Weller 提出了一种能遵循instruct的检索系统，在检索时就进行推理，优于传统的语义检索&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p4_late_interaction.html">Part 4&lt;/a>: &lt;strong>Late Interaction Models For RAG&lt;/strong>&lt;/td>
-&lt;td>Antoine Chaffin 介绍了ColBERT这类迟交互、多向量模型&lt;/td>
-&lt;/tr>
-&lt;tr>
-&lt;td style="text-align: left">&lt;a href="https://hamel.dev/notes/llm/rag/p5_map.html">Part 5&lt;/a>: &lt;strong>RAG with Multiple Representations&lt;/strong>&lt;/td>
-&lt;td>Bryan Bischof and Ayush Chaurasia 提出，我们需要对不同模态的问题智能化的选用不用的指标&lt;/td>
-&lt;/tr>
-&lt;/tbody>
-&lt;/table>
-&lt;BR>
-&lt;h1 id="p1-i-dont-use-rag-i-just-retrieve-documents">P1: I don’t use RAG, I just retrieve documents&lt;/h1>
-&lt;p>现在有一些说法，认为长上下文窗口的出现使得我们不再需要RAG了。&lt;/p></description></item><item><title>BERT</title><link>https://Rook1eChan.github.io/posts/bert/</link><pubDate>Tue, 08 Jul 2025 17:02:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/bert/</guid><description>&lt;p>参考：https://zhuanlan.zhihu.com/p/403495863&lt;/p>
-&lt;h1 id="1介绍">1.介绍&lt;/h1>
-&lt;p>BERT(Bidirectional Encoder Representation from Transformers)是2018年10月由Google AI研究院提出的一种预训练模型，该模型在机器阅读理解顶级水平测试&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=SQuAD1.1&amp;amp;zhida_source=entity">SQuAD1.1&lt;/a>中表现出惊人的成绩: 全部两个衡量指标上全面超越人类，并且在11种不同NLP测试中创出SOTA表现，包括将GLUE基准推高至80.4% (绝对改进7.6%)，&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=MultiNLI&amp;amp;zhida_source=entity">MultiNLI&lt;/a>准确度达到86.7% (绝对改进5.6%)，成为NLP发展史上的里程碑式的模型成就。&lt;/p>
-&lt;p>BERT的网络架构使用的是&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=%E3%80%8AAttention+is+all+you+need%E3%80%8B&amp;amp;zhida_source=entity">《Attention is all you need》&lt;/a>中提出的多层Transformer结构。其最大的特点是抛弃了传统的RNN和CNN，通过Attention机制将任意位置的两个单词的距离转换成1，有效的解决了NLP中棘手的长期依赖问题。Transformer的结构在NLP领域中已经得到了广泛应用。&lt;/p>
-&lt;BR>
-&lt;h1 id="2模型结构">2.模型结构&lt;/h1>
-&lt;p>下图展示的是BERT的总体结构图，多个Transformer Encoder一层一层地堆叠起来，就组装成了BERT了，在论文中，作者分别用12层和24层Transformer Encoder组装了两套BERT模型，两套模型的参数总数分别为110M和340M。&lt;/p>
-&lt;p>&lt;img alt="P1" loading="lazy" src="https://Rook1eChan.github.io/bert/p1.jpg">&lt;/p>
-&lt;p>BERT是用了Transformer的encoder侧的网络，encoder中的Self-attention机制在编码一个token的时候同时利用了其上下文的token，其中‘同时利用上下文’即为双向的体现，而并非像Bi-LSTM那样把句子倒序输入一遍。在BERT之前是GPT，GPT使用的是Transformer的decoder侧的网络，GPT是一个单向语言模型的预训练过程，更适用于文本生成，通过前文去预测当前的字。&lt;/p>
-&lt;h2 id="21embedding">2.1Embedding&lt;/h2>
-&lt;p>Embedding由三种Embedding求和而成：&lt;/p>
-&lt;p>&lt;img alt="p2" loading="lazy" src="https://Rook1eChan.github.io/bert/p2.jpg">&lt;/p>
-&lt;p>&lt;strong>token embedding&lt;/strong>&lt;/p>
-&lt;p>将输入的文本进行Word Piece分词，如playing切割成play，##ing，使用Word Piece是为了解决未登录词。tokenization后，在开头插入[CLS]，在每句话的末尾插入[SEP]。[CLS]表示该特征用于分类模型，对非分类模型，该符号可以省去。[SEP]表示分句符号，用于断开输入语料中的两个句子。&lt;/p>
-&lt;p>Bert 在处理英文文本时只需要 30522 个词，Token Embeddings 层会将每个词转换成 768 维向量，如下图的例子中， 5 个Token 会被转换成一个 (5, 768) 的矩阵或 (1, 5, 768) 的张量。&lt;/p>
-&lt;p>&lt;img alt="p3" loading="lazy" src="https://Rook1eChan.github.io/bert/p3.jpg">&lt;/p>
-&lt;BR>
-&lt;p>&lt;strong>segment embedding&lt;/strong>&lt;/p>
-&lt;p>用来区分两种句子。bert在训练时包括两种任务，其一是MLM（masked language model，掩码语言模型），就是遮住某个词让模型去预测；其二是NSP（next sentence prediction，下一句预测），输入两个句子，让模型判断是否相关。这时候就需要segment embedding对两个句子做区别。&lt;/p>
-&lt;p>进行问答等需要预测下一句的任务时，segment embedding层把0赋值给第一个句子的各token，把1赋值给第二个句子的各token。在文本分类任务时，segment embedding全部为0。&lt;/p>
-&lt;p>&lt;img alt="p4" loading="lazy" src="https://Rook1eChan.github.io/bert/p4.jpg">&lt;/p>
-&lt;BR>
-&lt;p>&lt;strong>position embedding&lt;/strong>&lt;/p>
-&lt;p>和transformer的实现不同，不是固定的三角函数，而是可学习的参数。&lt;/p>
-&lt;p>Transformer 中通过植入关于 Token 的相对位置或者绝对位置信息来表示序列的顺序信息。作者测试用学习的方法来得到 Position Embeddings，最终发现固定位置和相对位置效果差不多，所以最后用的是固定位置的，而正弦可以处理更长的 Sequence，且可以用前面位置的值线性表示后面的位置。&lt;/p></description></item><item><title>Retrieval_Learning</title><link>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</link><pubDate>Mon, 07 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</guid><description>&lt;p>&lt;em>简介：检索相关算法的学习&lt;/em>&lt;/p>
-&lt;BR>
-&lt;h1 id="1tf-idf">1.TF-IDF&lt;/h1>
-&lt;h2 id="11原理">1.1原理&lt;/h2>
-&lt;p>TF：term frequency（词频）&lt;/p>
-&lt;p>IDF：inverse document frequency（逆文档频率）&lt;/p>
-&lt;p>&lt;strong>字词的重要性随着它在文件中出现的次数成正比增加，但同时会随着它在语料库中出现的频率成反比下降。&lt;/strong>&lt;/p>
-&lt;p>&lt;strong>TF-IDF的主要思想是&lt;/strong>：如果某个单词在一篇文章中出现的频率高（TF高），并且在其他文章中很少出现（IDF高），则认为此词或者短语具有很好的类别区分能力，适合用来分类。&lt;/p>
-&lt;BR>
-&lt;p>$TF=\frac{某个词在文章中出现的次数}{文章的总词数}$&lt;/p>
-&lt;p>考虑到文章长短不同，除以总词数进行标准化&lt;/p>
-&lt;BR>
-&lt;p>$IDF=log(\frac{语料库的文章总数}{包含该词的文章数量+1})$&lt;/p>
-&lt;p>加1防止不存在包含该词的文档时分母为0&lt;/p>
-&lt;BR>
-&lt;p>$TF-IDF=TF \times IDF$&lt;/p>
-&lt;BR>
-&lt;p>&lt;strong>优点：&lt;/strong>&lt;/p>
-&lt;ol>
-&lt;li>简单快速、易理解&lt;/li>
-&lt;/ol>
-&lt;p>&lt;strong>缺点：&lt;/strong>&lt;/p>
-&lt;ol>
-&lt;li>没考虑词语的语义&lt;/li>
-&lt;li>仅用词频考虑词语的重要性不够全面。按照传统TF-IDF，往往一些生僻词的IDF(反文档频率)会比较高、因此这些生僻词常会被误认为是文档关键词。&lt;/li>
-&lt;li>没有考虑特征词的位置因素对文本的区分度，词条出现在文档的不同位置时，对区分度的贡献大小是不一样的。&lt;/li>
-&lt;/ol>
-&lt;BR>
-&lt;h2 id="12自己实现">1.2自己实现&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">import&lt;/span> &lt;span class="nn">math&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 计算每句话的词频&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">counter&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word_list&lt;/span>&lt;span class="p">):&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">wordcount&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">doc&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">word_list&lt;/span>&lt;span class="p">:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">count&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">{}&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">word&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">doc&lt;/span>&lt;span class="p">:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">count&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">count&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">wordcount&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">wordcount&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 计算tf=某个词在文章中出现的总次数/文章的总词数&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">tf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">word_list&lt;/span>&lt;span class="p">):&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">word_list&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="nb">sum&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word_list&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">values&lt;/span>&lt;span class="p">())&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 统计含有该单词的句子数&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">count_sentence&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">wordcount&lt;/span>&lt;span class="p">):&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="nb">sum&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="n">i&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">wordcount&lt;/span> &lt;span class="k">if&lt;/span> &lt;span class="n">i&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">))&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># 计算idf=log(语料库中的文档总数/(包含该词的文档数+1))&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">idf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">wordcount&lt;/span>&lt;span class="p">):&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">math&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">log&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">len&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">wordcount&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="o">/&lt;/span> &lt;span class="n">count_sentence&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">wordcount&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1"># tf-idf=tf*idf&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">def&lt;/span> &lt;span class="nf">tfidf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">word_list&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">wordcount&lt;/span>&lt;span class="p">):&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">tf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">word_list&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">*&lt;/span> &lt;span class="n">idf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">wordcount&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="vm">__name__&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;__main__&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">docs&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;what is the weather like today&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;what is for dinner tonight&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;this is a question worth pondering&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;it is a beautiful day today&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">word_list&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[]&lt;/span> &lt;span class="c1"># 记录每个文档分词后的结果&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">doc&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">docs&lt;/span>&lt;span class="p">:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">word_list&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">append&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">doc&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">split&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34; &amp;#34;&lt;/span>&lt;span class="p">))&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># 使用停用词&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># stopwords = [&amp;#34;is&amp;#34;, &amp;#34;the&amp;#34;]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># for i in docs:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># all_words = i.split()&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># new_words = []&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># for j in all_words:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># if j not in stopwords:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># new_words.append(j)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># word_list.append(new_words)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">wordcount&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">counter&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word_list&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1"># 统计每个文档词的次数&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">cnt&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">doc&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="nb">enumerate&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">wordcount&lt;/span>&lt;span class="p">):&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;doc&lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">cnt&lt;/span>&lt;span class="p">))&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">_&lt;/span> &lt;span class="ow">in&lt;/span> &lt;span class="n">doc&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">items&lt;/span>&lt;span class="p">():&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;word:&lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2"> --- TF-IDF:&lt;/span>&lt;span class="si">{}&lt;/span>&lt;span class="s2">&amp;#34;&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">format&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">tfidf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">word&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">doc&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">wordcount&lt;/span>&lt;span class="p">)))&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;BR>
-&lt;h2 id="13使用sklearn库">1.3使用sklearn库&lt;/h2>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="kn">from&lt;/span> &lt;span class="nn">sklearn.feature_extraction.text&lt;/span> &lt;span class="kn">import&lt;/span> &lt;span class="n">TfidfVectorizer&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="vm">__name__&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;__main__&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">docs&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="p">[&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;what is the weather like today&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;what is for dinner tonight&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;this is a question worth pondering&amp;#34;&lt;/span>&lt;span class="p">,&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="s2">&amp;#34;it is a beautiful day today&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tfidf_vec&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">TfidfVectorizer&lt;/span>&lt;span class="p">()&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># 利用fit_transform得到TFIDF矩阵&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tfidf_matrix&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">tfidf_vec&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">fit_transform&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">docs&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># 利用get_feature_names_out得到不重复的单词&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tfidf_vec&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">get_feature_names_out&lt;/span>&lt;span class="p">())&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># 利用vocabulary_得到各单次的编号&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tfidf_vec&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="n">vocabulary_&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c1"># 输出TFIDF矩阵，即每个文档中每个词的tfidf值&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">tfidf_matrix&lt;/span>&lt;span class="p">)&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;BR>
-&lt;h1 id="2bm25">2.BM25&lt;/h1>
-&lt;h2 id="21原理">2.1原理&lt;/h2>
-&lt;p>BM25是一种基于概率检索框架的排序函数，用于计算查询（Query）与文档（Document）的相关性得分。&lt;/p></description></item><item><title>Inference Scaling for Long-Context Retrieval Augmented Generation</title><link>https://Rook1eChan.github.io/posts/inference-scaling-for-long-context-retrieval-augmented-generation/</link><pubDate>Wed, 07 May 2025 23:04:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/inference-scaling-for-long-context-retrieval-augmented-generation/</guid><description>&lt;p>ICLR2025，来自Google DeepMind团队的工作&lt;/p>
-&lt;p>&lt;a href="https://arxiv.org/abs/2410.04343v2">https://arxiv.org/abs/2410.04343v2&lt;/a>&lt;/p>
-&lt;h2 id="0目标">0.目标&lt;/h2>
-&lt;p>先前对于RAG推理扩展的研究主要集中于提供更多的知识，但只增加知识的数量是不够的。当前的LLM在处理长上下文时仍存在挑战。比如，在超长序列中定位有效信息的能力有限、最佳性能往往是在没有充分利用上下文的情况下实现的、超过一定阈值（文档数量）的检索会使性能停滞甚至下降。&lt;/p>
-&lt;p>目标是找到上下文长度与最优配置之间的关系，能够预测最佳推理参数，最大限度提高RAG性能。其中DRAG的参数为检索到的文档数量和示例数量。IterDRAG的参数为生成次数。&lt;/p>
-&lt;h2 id="1贡献">1.贡献&lt;/h2>
-&lt;ul>
-&lt;li>提出两种RAG方法：DRAG（基于演示的RAG，为LLM提供多个RAG示例）和IterDRAG（基于迭代演示的RAG，将输入查询分解为更简单的子查询，迭代检索）。并证明了这两种方法优于仅提供知识的RAG。&lt;/li>
-&lt;li>得到了RAG的推理缩放定律：在最佳配置下，RAG性能随有效上下文长度线性变化。&lt;/li>
-&lt;li>根据定律对RAG性能与不同推理参数建模，推导出计算分配模型，为长上下文RAG的优化提供了指导。&lt;/li>
-&lt;/ul>
-&lt;h2 id="2相关工作">2.相关工作&lt;/h2>
-&lt;h3 id="21长上下文llms">2.1长上下文LLMs&lt;/h3>
-&lt;p>早期采用稀疏/低秩核来减少内存需求。&lt;/p>
-&lt;blockquote>
-&lt;p>I. Beltagy, M. E. Peters, and A. Cohan. Longformer: The long-document transformer. &lt;em>arXiv preprint&lt;/em> &lt;em>arXiv:2004.05150&lt;/em>, 2020.&lt;/p>
-&lt;p>K. Choromanski, V. Likhosherstov, D. Dohan, X. Song, A. Gane, T. Sarlos, P. Hawkins, J. Davis, A. Mohiuddin, L. Kaiser, et al. Rethinking attention with performers. &lt;em>arXiv preprint arXiv:2009.14794&lt;/em>,2020.&lt;/p>
-&lt;p>N. Kitaev, L. Kaiser, and A. Levskaya. Reformer: The efficient transformer. In &lt;em>International Conference&lt;/em> &lt;em>on Learning Representations&lt;/em>, 2019.&lt;/p></description></item><item><title>RAGTruth: A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models</title><link>https://Rook1eChan.github.io/posts/ragtruth/</link><pubDate>Wed, 07 May 2025 15:49:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/ragtruth/</guid><description>&lt;h1 id="1motivation">1.Motivation&lt;/h1>
-&lt;p>尽管有了RAG的帮助，LLM仍有可能给出与所提供知识不符的回答。因此需要构建一个数据集来检测幻觉。&lt;/p>
-&lt;br>
-&lt;h1 id="2contributions">2.Contributions&lt;/h1>
-&lt;ol>
-&lt;li>提出RAGTruth，一个大规模词级别的幻觉检测数据集，由LLM自然产生（作者认为故意触发的幻觉与自然产生的幻觉存在差异）&lt;/li>
-&lt;li>对现有幻觉检测方法进行比较&lt;/li>
-&lt;li>提出了微调LLM用于幻觉检测的基线。Llama-2-13B在RAGTruth training data上微调后比得上GPT4&lt;/li>
-&lt;li>证明了使用微调得到的幻觉检测器，能降低幻觉&lt;/li>
-&lt;/ol>
-&lt;h1 id="3related-work">3.Related Work&lt;/h1>
-&lt;h1 id="4methods">4.Methods&lt;/h1>
-&lt;h2 id="1hallucination-taxonomy幻觉类型">1.Hallucination Taxonomy幻觉类型&lt;/h2>
-&lt;p>本文将幻觉类型分为：&lt;/p>
-&lt;ol>
-&lt;li>&lt;strong>Evident Conflict明显冲突&lt;/strong>：与提供的文本明显相反，容易辨别，如事实错误、拼写错误、数字错误。&lt;/li>
-&lt;li>&lt;strong>Subtle Conflict轻微冲突&lt;/strong>：生成的信息与提供的文本有歧义，比如术语的替换，需要结合上下文判断。&lt;/li>
-&lt;li>&lt;strong>Evident Introduction of Baseless Information明显引入无根据知识&lt;/strong>：生成的内容不在提供的信息之内。&lt;/li>
-&lt;li>&lt;strong>Subtle Introduction of Baseless Information轻微引入无根据知识&lt;/strong>：生成内容超出了提供的信息，比如主观的假设或推断。&lt;/li>
-&lt;/ol>
-&lt;h2 id="2response-generation回答生成">2.Response Generation回答生成&lt;/h2>
-&lt;p>选择三个任务: Question Answering,Data-to-text Writing, and News Summarization.（问题回答、数据到文本的写作、新闻摘要），生成回答并人工标注幻觉部分。&lt;/p>
-&lt;ul>
-&lt;li>&lt;strong>Question Answering&lt;/strong>：从MS MARCO选择与生活相关的QA，每个问题保留三段提取内容，然后使用LLM根据内容回答问题。&lt;/li>
-&lt;li>&lt;strong>Data-to-text Writing&lt;/strong>：从Yelp数据集选择有关商家的结构化信息和用户的评论，用LLM生成对商家的描述。如果数据出现空值而大模型将其解释为“假”，认为这是出现了幻觉。&lt;/li>
-&lt;li>&lt;strong>News Summarization&lt;/strong>：数据来自CNN/Daily Mail dataset+某新闻平台的新闻，使用LLM对每篇内容生成摘要。&lt;/li>
-&lt;/ul>
-&lt;p>使用的LLM：GPT-3.5-turbo-0613、GPT-4-0613、Mistral-7b-Instruct、Llama-2-7B-chat、 Llama-2-13B-chat、 Llama-2-70B-chat&lt;/p>
-&lt;p>每个任务都用6个模型跑一遍，得到6个回答。&lt;/p>
-&lt;h2 id="5result">5.Result&lt;/h2>
-&lt;p>各项任务中幻觉类型的比例：&lt;/p>
-&lt;p>&lt;img alt="f2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/f2.png">&lt;/p>
-&lt;p>如图2所示，在上下文中无根据的信息生成显著多于与上下文冲突的信息生成，尤其是在问答任务中。在两大类无根据信息和冲突信息中，更严重的幻觉，即明显的无根据信息和明显的冲突信息，占据了相当大的比例。这一观察结果说明即使有RAG，还是存在严重幻觉。&lt;/p>
-&lt;BR>
-&lt;p>&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t2.png">&lt;/p>
-&lt;p>数据转文本的任务幻觉率最高，可能与JSON格式有关。另外，较新的新闻的幻觉率不比过时新闻高，可能是由于较新的新闻的文本长度较短。&lt;/p>
-&lt;BR>
-&lt;p>各模型出现幻觉的比例：&lt;/p>
-&lt;p>（span、density什么意思）&lt;/p>
-&lt;p>&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t3.png">&lt;/p>
-&lt;p>表3显示，在我们收集的数据中，OpenAI的两个模型表现出显著较低的幻觉率。具体来说，GPT-4-0613的幻觉频率最低。为了更清晰地比较不同模型的幻觉率，我们计算了每个模型在三个任务中的幻觉密度。幻觉密度定义为每一百个单词响应中平均出现的幻觉跨度数。在Llama2系列中，除了数据总文本写作任务外，模型规模与幻觉密度之间存在明显的负相关关系。尽管Mistral-7B-Instruct模型在各种基准和排行榜上的表现强劲（Zheng等人，2023），但它生成的包含幻觉的回答数量最多。&lt;/p>
-&lt;BR>
-&lt;p>幻觉与文本长度的关系：&lt;/p>
-&lt;p>&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t4.png">&lt;/p>
-&lt;p>对于上下文长度（CLB），只有新闻摘要呈现出上下文越长，越容易幻觉的特点。&lt;/p>
-&lt;p>对于回答长度（RLB），都有回答越长，越容易幻觉的特点。&lt;/p>
-&lt;BR>
-&lt;p>幻觉与位置的关系：&lt;/p>
-&lt;p>在问答和新闻摘要任务中，幻觉更倾向于出现在回答的末尾。数据到文本写作任务在前半部分较易出现幻觉。&lt;/p></description></item><item><title>RAG,QA相关数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/ragqa-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/ragqa-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</guid><description>&lt;blockquote>
-&lt;p>RAG，QA常用的数据集和评价标准
-多为知识密集型、问答型数据集&lt;/p>&lt;/blockquote>
-&lt;h1 id="数据集">数据集&lt;/h1>
-&lt;h2 id="1ultradomain">1.UltraDomain&lt;/h2>
-&lt;p>lightrag曾使用&lt;/p>
-&lt;p>使用&lt;a href="https://arxiv.org/abs/2409.05591">MemoRAG&lt;/a>提出的Benchmark。&lt;/p>
-&lt;p>在UltraDomain里，包含多个领域的数据，每个数据包括多本书。以cs为例，共含有100本书和100个对应的问题。该领域专注于计算机科学，涵盖数据科学和软件工程的关键领域。它特别强调机器学习和大数据处理，内容涉及推荐系统、分类算法以及使用Spark进行实时分析。：&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">input&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">How&lt;/span> &lt;span class="n">does&lt;/span> &lt;span class="n">Spark&lt;/span> &lt;span class="n">Streaming&lt;/span> &lt;span class="n">enable&lt;/span> &lt;span class="n">real&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">time&lt;/span> &lt;span class="n">data&lt;/span> &lt;span class="n">processing&lt;/span>&lt;span class="err">?&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">answers&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="s1">&amp;#39;Spark Streaming extends ...... &amp;#39;&lt;/span>&lt;span class="p">]&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">context&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s2">&amp;#34;Whole Book......&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">length&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">131651&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">context_id&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="mi">7&lt;/span>&lt;span class="n">bcef8714a477fd61fc8fb0d499b2cc3&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">_id&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">b2fd8d9c6d1499d521d778ce3d6d06fa&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">label&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="n">cs&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">meta&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="p">{&lt;/span>&lt;span class="s1">&amp;#39;title&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Machine Learning With Spark&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s1">&amp;#39;authors&amp;#39;&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="s1">&amp;#39;Nick Pentreath&amp;#39;&lt;/span>&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>数据集地址：&lt;a href="https://huggingface.co/datasets/TommyChien/UltraDomain">TommyChien/UltraDomain · Datasets at Hugging Face&lt;/a>&lt;/p>
-&lt;p>Lightrag使用LLM生成问题-答案对&lt;/p>
-&lt;p>生成问题的方法来自于&lt;a href="https://arxiv.org/abs/2404.16130">From Local to Global: A Graph RAG Approach to Query-Focused Summarization&lt;/a>&lt;/p>
-&lt;p>提供文本，让大模型生成K个使用该数据集的用户身份（比如数据集是财经新闻，user就可能是收集金融市场趋势的财经记者），对于每个用户再生成N个任务，每个用户-任务提出M个高层次问题（理解整个数据集、无需提取具体事实）&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> User: A tech journalist looking for insights and trends in the tech industry
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Task: Understanding how tech leaders view the role of policy and regulation
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Questions:
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 1. Which episodes deal primarily with tech policy and government regulation?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2. How do guests perceive the impact of privacy laws on technology development?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 3. Do any guests discuss the balance between innovation and ethical considerations?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 4. What are the suggested changes to current policies mentioned by the guests?
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 5. Are collaborations between tech companies and governments discussed and how?
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;BR>
-&lt;h2 id="2dapr使用的数据集">2.DAPR使用的数据集&lt;/h2>
-&lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA&lt;/p></description></item><item><title>DAPR A Benchmark on Document-Aware Passage Retrieval</title><link>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</link><pubDate>Fri, 02 May 2025 16:41:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</guid><description>&lt;h2 id="1motivation">1.Motivation&lt;/h2>
-&lt;p>现有的神经检索（neural retrieval）的方法主要集中在短文本排序，在长篇文章中做检索效果并不好（由于自注意力机制token数量的限制；或者返回的文档过长，不便于用户使用）。另外，作者发现在先进检索器的检索错误中，半数错误与缺少上下文有关。&lt;/p>
-&lt;p>比如：在A剧场中演出过的演员有哪些？如果只检索关键字“A剧场”，可能找不到答案，需要结合上下文找到“……在这里演出过……”的内容才是真正答案。&lt;/p>
-&lt;p>因此，作者针对上下文强关联的任务建立了一个数据集，使用两类方法（hybrid retrieval with BM25、 contextualized passage representations）进行实验，并详细解释了实验结果。&lt;/p>
-&lt;BR>
-&lt;h2 id="2related-work">2.Related work&lt;/h2>
-&lt;ul>
-&lt;li>&lt;strong>Document Question Answering（DocQA）&lt;/strong>：要求模型回答关于输入文档的问题，通常假设文档在提问前就已给出。本文提出的(Document-Awarepassage Retrieval, DAPR)与DocQA类似，区别在于DAPR希望用户提问时不知道目标文档，由模型来寻找目标文档。&lt;/li>
-&lt;li>&lt;strong>Long-document retrieval（长文档检索）&lt;/strong>：对于长文档检索有一些简单的方法：将文档中段落相关性的最大值作为文档的相关性（MaxP）；仅编码文档中的第一个段落（FirstP）……与DAPR相比，所有这些先前的工作都没有研究如何在考虑文档上下文的情况下检索段落。&lt;/li>
-&lt;li>&lt;strong>Hybrid retrieval（混合检索）&lt;/strong>：对于一个查询使用多个检索系统（常常是BM25+神经检索）
-&lt;ul>
-&lt;li>rank fusion（排名融合）——通过凸组合、互逆排名等方法将不同检索系统的个体排名合并为一个。&lt;/li>
-&lt;li>hierarchical retrieval（层次检索）——首先检索文档，然后从这些文档中检索段落。只适用于段落本身足以对查询做出响应的情况。&lt;/li>
-&lt;li>本文探讨了段落排名和文档排名结合的有效性。&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;li>&lt;strong>Relation to pre-training tasks（和预训练任务的关系）&lt;/strong>：有的研究在预训练中加入上下文。但推理时仍然只关注独立的段落。&lt;/li>
-&lt;li>补充：
-&lt;ul>
-&lt;li>NQ：谷歌的一个问答数据集&lt;/li>
-&lt;li>NDCG：评价检索序列的相关性和位置&lt;/li>
-&lt;li>共指信息：描述文本中不同表达式指向同一实体或概念的语言现象，如*“玛丽打开了门，&lt;strong>她&lt;/strong>随后拿起包。”* → “她”与“玛丽”共指同一人。&lt;/li>
-&lt;li>共指消解（Coreference Resolution）：自动识别文本中所有指向同一实体的表达式并分组。&lt;/li>
-&lt;/ul>
-&lt;/li>
-&lt;/ul>
-&lt;BR>
-&lt;h2 id="3method">3.Method&lt;/h2>
-&lt;p>DAPR任务要求系统提取+排序。给出段落集合$C$，文档集合$D$，对于查询集合$q \in Q$，检索系统$s$应该提取出最好的$K$个段落集合$R$。&lt;/p>
-&lt;h3 id="31nq-hard">3.1NQ-Hard&lt;/h3>
-&lt;p>对SOTA的检索器（DRAGON+,SPLADEv2, and ColBERTv2)使用NQ数据集，发现一半的错误来自于不了解上下文。将这些数据命名为&lt;strong>NQ-hard&lt;/strong>，并分为4类：&lt;/p>
-&lt;ol>
-&lt;li>共指消解（CR）：关键的共指信息需要通过特定文档上下文来解析；&lt;/li>
-&lt;li>主要主题（MT）：只有了解文档的背景主题（通常是标题），才能回答查询；&lt;/li>
-&lt;li>多跳推理（MHR）：连接查询和查询相关段落中的实体的推理路径包括文档上下文中的其他节点；&lt;/li>
-&lt;li>缩写（AC）：在相关段落（或查询）中出现一个缩写，该缩写对应于查询（或相关段落）中的全称，文档上下文解释了这种映射；&lt;/li>
-&lt;/ol>
-&lt;p>&lt;img alt="nqques" loading="lazy" src="https://Rook1eChan.github.io/DAPR/NQques.png">&lt;/p>
-&lt;BR>
-&lt;h3 id="32datasets">3.2Datasets&lt;/h3>
-&lt;p>MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA（具体处理方式见附录A）有语料库的直接用，没有的把黄金段落文本收集起来当语料库。（也是很神奇）&lt;/p>
-&lt;BR>
-&lt;h3 id="33evaluation">3.3Evaluation&lt;/h3>
-&lt;p>使用&lt;strong>nDCG@10&lt;/strong>和recall@100做指标。&lt;/p>
-&lt;p>将binary/3-scale转换为0-1/0-1-2，然后使用pytrec_eval计算指标。&lt;/p>
-&lt;p>考虑到现实世界中的检索系统多用于零样本、跨领域的情景，本文进行了一项测试：在MS MARCO训练集训练，然后在MS MARCO测试集测试，作为域内评估；在其它四个数据集上测试，作为域外评估。&lt;/p>
-&lt;BR>
-&lt;h2 id="4experiments">4.Experiments&lt;/h2>
-&lt;h3 id="41基础检索器">4.1基础检索器&lt;/h3>
-&lt;ul>
-&lt;li>BM25（使用PySerini的默认配置）&lt;/li>
-&lt;li>neural retrievers：DRAGON+、SPLADEv2、ColBERTv2（在MS MARCO上训练）&lt;/li>
-&lt;/ul>
-&lt;BR>
-&lt;h3 id="42两种将上下文引入神经检索器的方法">4.2两种将上下文引入神经检索器的方法&lt;/h3>
-&lt;h4 id="421加入bm25的混合检索">4.2.1加入BM25的混合检索&lt;/h4>
-&lt;p>&lt;strong>（1）Rank fusion融合检索&lt;/strong>&lt;/p></description></item><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p>github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p>
-&lt;h2 id="一hugo">一、Hugo&lt;/h2>
-&lt;p>hugo是一个快速搭建网站的工具，由go语言编写。&lt;/p>
-&lt;h3 id="1安装hugo">1.安装hugo&lt;/h3>
-&lt;p>到hugo的github标签页&lt;a href="https://github.com/gohugoio/hugo/tags">Tags · gohugoio/hugo&lt;/a>选择一个版本，下载对应的安装包。比如&lt;code>hugo_extended_withdeploy_0.147.0_windows-amd64.zip&lt;/code>。&lt;/p>
-&lt;p>解压后，在根目录打开cmd，输入&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-cmd" data-lang="cmd">&lt;span class="line">&lt;span class="cl">hugo new site YourSiteName
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>为你的网站建立文件夹。&lt;code>YourSiteName&lt;/code>更改为你的网站的名字。
-根目录会出现YourSiteName文件夹。&lt;/p>
-&lt;p>3.将根目录的hugo.exe复制到YourSiteName里。
-在YourSiteName文件夹里打开cmd，输入&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-cmd" data-lang="cmd">&lt;span class="line">&lt;span class="cl">hugo server -D
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>会返回如下信息：&lt;/p>
-&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-cmd" data-lang="cmd">&lt;span class="line">&lt;span class="cl"> &lt;span class="p">|&lt;/span> EN
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">-------------------+-----
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Pages &lt;span class="p">|&lt;/span> 11
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Paginator pages &lt;span class="p">|&lt;/span> 0
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Non-page files &lt;span class="p">|&lt;/span> 0
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Static files &lt;span class="p">|&lt;/span> 0
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Processed images &lt;span class="p">|&lt;/span> 0
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Aliases &lt;span class="p">|&lt;/span> 2
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Cleaned &lt;span class="p">|&lt;/span> 0
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Built in 79 ms
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Environment: &lt;span class="s2">&amp;#34;development&amp;#34;&lt;/span>
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Serving pages from disk
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Running in Fast Render Mode. For full rebuilds on change: hugo server --disableFastRender
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Web Server is available at http://localhost:1313/ (bind address 127.0.0.1)
-&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Press Ctrl+C to stop
-&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>在浏览器中输入&lt;code>http://localhost:1313/&lt;/code>，显示Page Not Found，说明服务器正常运行，但是此时网站还没有页面。&lt;/p></description></item><item><title>Neural-IR Models（博客）</title><link>https://Rook1eChan.github.io/posts/neural-ir-models/</link><pubDate>Fri, 02 May 2025 01:18:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/neural-ir-models/</guid><description>&lt;p>原文：&lt;a href="https://medium.com/@mhammadkhan/neural-re-ranking-models-c0a67278f626">Neural-IR Models.. Neural IR(Information Retrieval) is a… | by Muhammad Hammad Khan | Medium&lt;/a>&lt;/p>
-&lt;p>译文：&lt;a href="https://zhuanlan.zhihu.com/p/545429612">【翻译】一文详解神经信息检索领域的最新进展 - 知乎&lt;/a>&lt;/p>
-&lt;p>神经信息检索(Neural Information Retrieval, Neural IR)是信息检索领域的一个重要研究课题。自从谷歌在2018年发布BERT以来，它在11个NLP任务上获得了最先进的结果，一举改变了整个NLP领域的研究范式。2019年1月，Nogueira和Cho在MS MARCO Passage Ranking测试集上首次使用BERT。从那时起，人们开始研究神经信息检索的范式，也提出了许多基于BERT的文本排序方法。这些方法用于&lt;strong>多阶段搜索架构的重排阶段(Re-Ranker)&lt;/strong>。如下图所示。&lt;/p>
-&lt;p>&lt;img alt="image" loading="lazy" src="https://Rook1eChan.github.io/Neural-IR-Models-1.jpg">&lt;/p>
-&lt;p>Figure1 展示了一个简化的多阶段搜索结构。第一步：倒排索引（Inverted Index）+BM25得分进行排序，得到topK文档，这一步也叫候选项生成（Candidates Generation）。第二步，通过基于BERT的上下文排序模型来确定前N个文档的最终排序。&lt;/p>
-&lt;p>神经重排模型(Neural re-ranking models)一般可以分为以下四种，如Figure2所示：&lt;/p>
-&lt;ul>
-&lt;li>基于表征(representation-focused)&lt;/li>
-&lt;li>基于交互(interaction-focused)&lt;/li>
-&lt;li>全交互（也被称作交叉编码器,）(all-to-all interaction(cross encoder) )&lt;/li>
-&lt;li>迟交互(late interaction)&lt;/li>
-&lt;/ul>
-&lt;p>&lt;img alt="image" loading="lazy" src="https://Rook1eChan.github.io/Neural-IR-Models-2.jpg">&lt;/p>
-&lt;h2 id="1基于表征双塔模型bi-encoder-models">1.基于表征——双塔模型(Bi-encoder Models)&lt;/h2>
-&lt;p>双塔模型将Query和Doc分别表征为密集的向量嵌入，用向量相似度分数来估计Q和D的相关性。在训练时&lt;strong>需要正负样本进行对比学习&lt;/strong>，因为如果只给模型看正样本，它会偷懒——把所有向量都变成一样的，这样“相似度”永远最高。负样本强迫模型学会区分相关和不相关的内容。&lt;/p>
-&lt;p>在将模型训练好后，doc和query的表征可以独立进行，不用像交叉编码器那样每次都要把Query和Doc拼在一起重新计算。&lt;/p>
-&lt;h3 id="11密集段落检索器dense-passage-retriever-dpr">1.1密集段落检索器(Dense passage retriever, DPR)&lt;/h3>
-&lt;blockquote>
-&lt;p>论文：&lt;a href="https://aclanthology.org/2020.emnlp-main.550">Dense Passage Retrieval for Open-Domain Question Answering&lt;/a>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Chan's Blog</title><link>https://Rook1eChan.github.io/</link><description>Recent content on Chan's Blog</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><lastBuildDate>Sat, 16 Aug 2025 21:23:00 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>LumberChunker: Long-Form Narrative Document Segmentation 论文阅读</title><link>https://Rook1eChan.github.io/posts/lumberchunker/</link><pubDate>Sat, 16 Aug 2025 21:23:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/lumberchunker/</guid><description>&lt;p&gt;&lt;em&gt;EMNLP2024&lt;/em&gt;&lt;/p&gt;
+&lt;h1 id="0主要贡献"&gt;0.主要贡献&lt;/h1&gt;
+&lt;ul&gt;
+&lt;li&gt;提出了Lumberchunker文本分割方法&lt;/li&gt;
+&lt;li&gt;提出了GuntenQA数据集&lt;/li&gt;
+&lt;li&gt;验证了Lumberchunker在下游RAG任务上的效果&lt;/li&gt;
+&lt;/ul&gt;
+&lt;BR&gt;
+&lt;h1 id="1lumberchunker"&gt;1.LumberChunker&lt;/h1&gt;
+&lt;p&gt;&lt;img alt="overview" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p1.png"&gt;&lt;/p&gt;
+&lt;p&gt;使用LLM动态的将文档分割为语义独立的片段。每个片段的长短是不固定的，确保每个片段的语义完整性、独立性。也就是说分割后，每一段包含的语义是完整的，同时与其它段有区别。由LLM来确定合适的分割点，这一决策过程考虑到文本的结构和语义，从而能够创建出大小最优且上下文连贯的片段。&lt;/p&gt;
+&lt;p&gt;1.先按照paragraph分割目标文档，然后把paragraph顺序连接，直到累计的token数超过一个阈值 $\theta$，形成 $ G_i$。该阈值如何设置后文会说。$\theta$ 应该足够大，防止把具有相关性的段落分开；同时 $\theta$​ 也要足够小，防止过多内容影响LLM进行推理。&lt;/p&gt;
+&lt;p&gt;2.让LLM寻找 $G_i$ 中“语义断层”的地方，作为分割点。分割点之前即形成一个chunk。剩下的内容继续与paragraph顺序拼接、超过阈值停止、LLM分割……分割整体是串行进行的。&lt;/p&gt;
+&lt;BR&gt;
+&lt;h1 id="2gutenqa"&gt;2.GutenQA&lt;/h1&gt;
+&lt;p&gt;数据来源于Project Gutenberg电子图书馆。&lt;/p&gt;
+&lt;p&gt;1.100本英文书籍，手动提取HTML内容（附录里和NarrativeQA进行了对比，手动提取没有编码错误等问题）&lt;/p&gt;
+&lt;p&gt;2.使用ChatGPT3.5为每本书生成问题、答案和包含答案的原文片段，人工为每本书筛选30个高质量问题。&lt;/p&gt;
+&lt;p&gt;问题需要基于给定片段中的具体信息，&lt;u&gt;且不能用书中的其它地方的信息来回答&lt;/u&gt;。问题大多以‘what,’ ‘when,’ ‘where’ 开头， ‘why’ and ‘how’较少。&lt;/p&gt;
+&lt;p&gt;3.原文片段需要简短，以确保任何分块方法都不会把它切开。评估方法是在检索到的文本中精确匹配字符串。&lt;/p&gt;
+&lt;BR&gt;
+&lt;h1 id="3experiments"&gt;3.Experiments&lt;/h1&gt;
+&lt;h3 id="31-propmt的阈值怎么选择"&gt;3.1 propmt的阈值怎么选择&lt;/h3&gt;
+&lt;p&gt;这个阈值就是paragraph顺序连接的阈值 $\theta$​ 。由于是LLM寻找分割点，token过长会影响模型的推理能力。&lt;/p&gt;
+&lt;p&gt;在不同阈值下使用DCG评估效果。DCG表明了是否检索到，检索结果是否靠前。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="p2" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p2.png"&gt;&lt;/p&gt;
+&lt;h3 id="32-lumberchunk是否增强了检索效果"&gt;3.2 Lumberchunk是否增强了检索效果？&lt;/h3&gt;
+&lt;p&gt;与其它分块基准进行对比。评估指标为DCG@K、RECALL@K。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="p3" loading="lazy" src="lumberchunker/p3.png"&gt;&lt;/p&gt;
+&lt;p&gt;此外，注意到semantic chunk和paragraph level的指标并没有随K有效增加，表明其在大规模文档检索方面的局限性。&lt;/p&gt;
+&lt;p&gt;proposition level的引用在哪？？？&lt;/p&gt;
+&lt;p&gt;附录F展示了各分割方法的统计结果：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="p3" loading="lazy" src="https://Rook1eChan.github.io/lumberchunker/p3.png"&gt;&lt;/p&gt;
+&lt;p&gt;Lumberchunk切分后的块平均长度为334，比预设的550阈值低了40%，这说明LLM有效的对文本进行了切分，而不是持续选择靠近末尾的ID。说明未出现Lost in the Middle现象。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;在论文《Lost in the Middle: How Language Models Use Long Contexts》中，作者发现，当针对长文本的不同位置信息设计专门问题，测试大语言模型对不同位置信息的记忆能力时，模型的性能呈现一种 “U 型” 表现，即对于前段与后段的信息有着较强的关注与记忆能力，能较好地解决问题，而对于中段信息的利用则有所逊色。&lt;/p&gt;
+&lt;p&gt;这种现象的产生可能是由于训练数据中的无意偏差。LLM 的预训练侧重于根据最近的一些 token 预测下一个 token，而在微调过程中，真正的指令又往往位于上下文开始的位置，这在不知不觉中引入了一种立场偏见，让 LLM 认为重要信息总是位于上下文的开头和结尾。&lt;/p&gt;</description></item><item><title>论文阅读 | DeepSeek-VL: Towards Real-World Vision-Language Understanding</title><link>https://Rook1eChan.github.io/posts/deepseekvl/</link><pubDate>Thu, 24 Jul 2025 16:00:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/deepseekvl/</guid><description>&lt;h1 id="deepseek-vl-towards-real-world-vision-language-understanding"&gt;DeepSeek-VL: Towards Real-World Vision-Language Understanding&lt;/h1&gt;
+&lt;h2 id="0-abstract"&gt;0. Abstract&lt;/h2&gt;
+&lt;p&gt;本文的主要贡献：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;数据集构建：构建了具有多样性和可扩展性，广泛覆盖真实世界场景的数据集。包括网页截图、PDF文档、OCR文本、图表以及知识型内容（如专家知识、教科书）等。此外，根据真实用户场景将数据进行分类，并据此创建了指令微调数据集。通过该数据集的微调，显著提升了模型在实际应用中的用户体验。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;创新的模型架构：采用了混合视觉编码器（hybrid vision encoder），能在固定的token预算下高效处理高分辨率图像（1024*1024），同时保持较低的计算开销。该架构保证模型多种视觉任务中能捕捉到关键的语义和细节信息。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;创新的训练策略：既使LLM学会新模态，也保证原有的的语言能力不退化。调控语言和视觉的竞争关系，实现两种模态的均衡融合。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;BR&gt;
+&lt;h2 id="1-introduction"&gt;1. Introduction&lt;/h2&gt;
+&lt;p&gt;大语言模型的巨大成功引发了人们对多模态模型的追求。这些模型能同时理解语言和图像，在执行现实世界任务时展现出巨大的潜力。&lt;/p&gt;
+&lt;p&gt;目前出现了很多开源的VLM方案，在benchmark上表现优秀，但在现实世界中表现不佳。大都存在以下问题（本文的改进方案）：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;许多方案将重心放在指令微调阶段。作者认为应当使用大量的视觉-语言数据进行充分预训练。（深度预训练）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;现有方案多使用学术上的数据集进行微调，缺乏现实世界经验。（精心构建数据集）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;现有方案多采用vision transformer与预训练语言模型结合的方式，这类模型分辨率低，不能胜任OCR或微小物体识别任务。（高分辨率处理架构）&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;有些模型在长期的多模态训练中会出现语言能力的退化。应采用一种既保留语言能力，又掌握新模态能力的训练方式。（平衡多模态特征的训练策略）&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;BR&gt;
+&lt;p&gt;DeepSeek-VL具有通用的多模态理解能力，能够处理逻辑图、网页、公式识别、科学文献、自然图像等。&lt;/p&gt;
+&lt;p&gt;DeepSeek-VL的优势：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;Deepseek-VL的预训练数据涵盖了广泛的世界知识，包括网络爬虫、网页代码、电子书、教育资料、arxiv文章等等，全面覆盖现实世界中的场景，数据质量高，具有广泛性和实用性。同时作者团队还精心设计了指令调优数据集，具体来说，作者从网上收集了GPT-4V和Gemini的真实案例，并进行分类，为每个测试图像选择合适的prompt。该分类体系还用于构建评估数据集。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;视觉模块采用混合视觉编码器架构，384$\times$384的文本对齐编码器用于粗粒度语义提取，1024$\times$1024的高分辨率编码器用于捕捉细节视觉信息。两者结合，可以将1024$\times$1024的图像压缩为576个token，在视觉表征和token开销间取得平衡，使视觉模块支持文-图交织处理和多轮推理场景。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;为了使多模态模型不出现语言能力的退化：1.保持至少70%的语言数据，这对维护模型内部的语言知识完整性至关重要。2.作者提出了模态预热(modality warm-up)策略。该方法通过在训练过程中动态调整模态比例，逐步引入更多视觉-语言数据。&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;在迭代模型时，首先在小模型上进行实验。然而，形如1B的小模型在benchmark上难以展现理想性能，无法真实的反映模型的实际表现。因此，作者把评估措施从多选改为了各选项的困惑度（PPL）对比；此外，为避免指令跟随能力成为瓶颈，在预训练阶段我们混合了少量指令调优数据。通过这种方式，我们既能利用1B模型获得合理性能表现，又能更精准地量化实验中每次迭代的影响效果。&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;BR&gt;
+&lt;h2 id="2-data-construction"&gt;2. Data Construction&lt;/h2&gt;
+&lt;p&gt;数据集包括两大模块：VL-Pretrain数据、VL-SFT数据&lt;/p&gt;
+&lt;p&gt;VL-Pretrain整合了多源视觉文本数据，旨在强化模型的基础跨模态理解能力。&lt;/p&gt;
+&lt;p&gt;VL-SFT相对较小，主要用于训练模型完成特定下游任务。&lt;/p&gt;
+&lt;p&gt;在stage1，VL-Pretrain用于预热VL adapter&lt;/p&gt;
+&lt;p&gt;stage2，VL-Pretrain用于联合预训练VL adaptor和VL model&lt;/p&gt;
+&lt;p&gt;stage3，使用VL-SFT微调整个模型&lt;/p&gt;
+&lt;BR&gt;
+&lt;h3 id="21-vl-pretraining-data"&gt;2.1 VL-Pretraining Data&lt;/h3&gt;
+&lt;p&gt;分为以下7个类别：&lt;/p&gt;
+&lt;p&gt;Interleaved image-text data（交错式图文数据，使模型对多模态输入具有更好的上下文学习能力），MMC4、Wiki等&lt;/p&gt;
+&lt;p&gt;Image caption data（图像描述，包含高质量图-文对），Capsfusion、TaiSu等&lt;/p&gt;
+&lt;p&gt;Table and chart data（图表数据），Chart2text、Unichart&lt;/p&gt;
+&lt;p&gt;Web Code data（网页代码，使模型具有从图形界面或图表重建代码的能力。从Stack数据集中的jupyter notebook清洗出2million图像-代码对。最终选择1.1million作为是主要训练集，包括一张图像-至少5行代码）&lt;/p&gt;
+&lt;p&gt;OCR data（文档光学字符识别数据，作者构建了一个中英混合的OCR数据集，包括两部分：1.arxiv文章 2.电子书和教育材料，来自Anna&amp;rsquo;s Archive）&lt;/p&gt;
+&lt;p&gt;Scene text OCR（增强模型识别场景中文本的能力）ArT、MLT-17等。&lt;/p&gt;
+&lt;p&gt;Text-only corpus（纯文本，和DeepSeek LLM的一致）&lt;/p&gt;
+&lt;h3 id="22-vl-sft-data"&gt;2.2 VL-SFT Data&lt;/h3&gt;
+&lt;p&gt;包括多个知名开源数据集ShareGPT4V、LAION-GPTV等。&lt;/p&gt;</description></item><item><title>博客 | Stop Saying RAG Is Dead</title><link>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</link><pubDate>Thu, 17 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E5%8D%9A%E5%AE%A2-stop-saying-rag-is-dead/</guid><description>&lt;p&gt;这是一个系列博客，包括五篇文章。博客地址：&lt;a href="https://hamel.dev/notes/llm/rag/not_dead.html"&gt;Stop Saying RAG Is Dead – Hamel’s Blog&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;作者批驳了“RAG已死”的说法，认为真正被淘汰的是“Chuck documents into a vector database, do cosine similarity, call it a day. ”的过时的RAG。RAG技术仍在进化，在后面的的文章里可以看到在检索、评估等方面上的创新。很高兴看到有人对RAG持积极态度，毕竟在一个有希望的领域进行研究学习更有动力。&lt;/p&gt;
+&lt;p&gt;五篇文章的简介如下：&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style="text-align: left"&gt;标题&lt;/th&gt;
+&lt;th&gt;内容简介&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left"&gt;&lt;a href="https://hamel.dev/notes/llm/rag/p1-intro.html"&gt;Part 1&lt;/a&gt;: &lt;strong&gt;I don’t use RAG, I just retrieve documents&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;Ben Clavié 介绍了RAG的现状&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left"&gt;&lt;a href="https://hamel.dev/notes/llm/rag/p2-evals.html"&gt;Part 2&lt;/a&gt;: &lt;strong&gt;Modern IR Evals For RAG&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;评估是必不可少的步骤，高质量的benchmark有助于我们选择更好的方法。Nandan Thakur （BIER作者）认为传统的IR指标不适合评估RAG的表现，应该采用新的指标&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left"&gt;&lt;a href="https://hamel.dev/notes/llm/rag/p3_reasoning.html"&gt;Part 3&lt;/a&gt;: &lt;strong&gt;Optimizing Retrieval with Reasoning Models&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;Orion Weller 提出了一种能遵循instruct的检索系统，在检索时就进行推理，优于传统的语义检索&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left"&gt;&lt;a href="https://hamel.dev/notes/llm/rag/p4_late_interaction.html"&gt;Part 4&lt;/a&gt;: &lt;strong&gt;Late Interaction Models For RAG&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;Antoine Chaffin 介绍了ColBERT这类迟交互、多向量模型&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style="text-align: left"&gt;&lt;a href="https://hamel.dev/notes/llm/rag/p5_map.html"&gt;Part 5&lt;/a&gt;: &lt;strong&gt;RAG with Multiple Representations&lt;/strong&gt;&lt;/td&gt;
+&lt;td&gt;Bryan Bischof and Ayush Chaurasia 提出，我们需要对不同模态的问题智能化的选用不用的指标&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;BR&gt;
+&lt;h1 id="p1-i-dont-use-rag-i-just-retrieve-documents"&gt;P1: I don’t use RAG, I just retrieve documents&lt;/h1&gt;
+&lt;p&gt;现在有一些说法，认为长上下文窗口的出现使得我们不再需要RAG了。&lt;/p&gt;</description></item><item><title>在Autodl中使用LLaMA-Factory进行微调</title><link>https://Rook1eChan.github.io/posts/llama-factory/</link><pubDate>Thu, 17 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/llama-factory/</guid><description>&lt;p&gt;LLaMA-Factory使用教程&lt;/p&gt;
+&lt;h1 id="一环境准备"&gt;一、环境准备&lt;/h1&gt;
+&lt;h2 id="11创建虚拟环境"&gt;1.1创建虚拟环境&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda create -n lf &lt;span class="nv"&gt;python&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;3.11
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda init
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后重开cmd&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda activate lf
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="12下载相关的包"&gt;1.2下载相关的包&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda install &lt;span class="nv"&gt;pytorch&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;2.4.0 &lt;span class="nv"&gt;torchvision&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;0.19.0 &lt;span class="nv"&gt;torchaudio&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;2.4.0 pytorch-cuda&lt;span class="o"&gt;=&lt;/span&gt;12.1 -c pytorch -c nvidia
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;验证GPU版本的Pytorch是否成功&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;python -c &lt;span class="s2"&gt;&amp;#34;import torch; print(torch.cuda.is_available())&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="13下载llama-factory"&gt;1.3下载llama factory&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt install git
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;开科学上网&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git clone https://github.com/hiyouga/LLaMA-Factory.git
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="14安装依赖"&gt;1.4安装依赖&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;python -m pip install --upgrade pip
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -r requirements.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -e &lt;span class="s2"&gt;&amp;#34;.[torch,metrics]&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果下载有问题，可以尝试清华源&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -e &lt;span class="s2"&gt;&amp;#34;.[torch,metrics]&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="15清理pip"&gt;1.5清理pip&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip cache purge
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h1 id="二下载模型"&gt;二、下载模型&lt;/h1&gt;
+&lt;h2 id="21从modelscope下载模型权重文件"&gt;2.1从modelscope下载模型权重文件&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install modelscope
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以下载到默认的内存，一般在/root/.cache/modelscope/hub/model/里面&lt;/p&gt;</description></item><item><title>BERT</title><link>https://Rook1eChan.github.io/posts/bert/</link><pubDate>Tue, 08 Jul 2025 17:02:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/bert/</guid><description>&lt;p&gt;参考：https://zhuanlan.zhihu.com/p/403495863&lt;/p&gt;
+&lt;h1 id="1介绍"&gt;1.介绍&lt;/h1&gt;
+&lt;p&gt;BERT(Bidirectional Encoder Representation from Transformers)是2018年10月由Google AI研究院提出的一种预训练模型，该模型在机器阅读理解顶级水平测试&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=SQuAD1.1&amp;amp;zhida_source=entity"&gt;SQuAD1.1&lt;/a&gt;中表现出惊人的成绩: 全部两个衡量指标上全面超越人类，并且在11种不同NLP测试中创出SOTA表现，包括将GLUE基准推高至80.4% (绝对改进7.6%)，&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=MultiNLI&amp;amp;zhida_source=entity"&gt;MultiNLI&lt;/a&gt;准确度达到86.7% (绝对改进5.6%)，成为NLP发展史上的里程碑式的模型成就。&lt;/p&gt;
+&lt;p&gt;BERT的网络架构使用的是&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=%E3%80%8AAttention+is+all+you+need%E3%80%8B&amp;amp;zhida_source=entity"&gt;《Attention is all you need》&lt;/a&gt;中提出的多层Transformer结构。其最大的特点是抛弃了传统的RNN和CNN，通过Attention机制将任意位置的两个单词的距离转换成1，有效的解决了NLP中棘手的长期依赖问题。Transformer的结构在NLP领域中已经得到了广泛应用。&lt;/p&gt;
+&lt;BR&gt;
+&lt;h1 id="2模型结构"&gt;2.模型结构&lt;/h1&gt;
+&lt;p&gt;下图展示的是BERT的总体结构图，多个Transformer Encoder一层一层地堆叠起来，就组装成了BERT了，在论文中，作者分别用12层和24层Transformer Encoder组装了两套BERT模型，两套模型的参数总数分别为110M和340M。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="P1" loading="lazy" src="https://Rook1eChan.github.io/bert/p1.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;BERT是用了Transformer的encoder侧的网络，encoder中的Self-attention机制在编码一个token的时候同时利用了其上下文的token，其中‘同时利用上下文’即为双向的体现，而并非像Bi-LSTM那样把句子倒序输入一遍。在BERT之前是GPT，GPT使用的是Transformer的decoder侧的网络，GPT是一个单向语言模型的预训练过程，更适用于文本生成，通过前文去预测当前的字。&lt;/p&gt;
+&lt;h2 id="21embedding"&gt;2.1Embedding&lt;/h2&gt;
+&lt;p&gt;Embedding由三种Embedding求和而成：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="p2" loading="lazy" src="https://Rook1eChan.github.io/bert/p2.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;token embedding&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;将输入的文本进行Word Piece分词，如playing切割成play，##ing，使用Word Piece是为了解决未登录词。tokenization后，在开头插入[CLS]，在每句话的末尾插入[SEP]。[CLS]表示该特征用于分类模型，对非分类模型，该符号可以省去。[SEP]表示分句符号，用于断开输入语料中的两个句子。&lt;/p&gt;
+&lt;p&gt;Bert 在处理英文文本时只需要 30522 个词，Token Embeddings 层会将每个词转换成 768 维向量，如下图的例子中， 5 个Token 会被转换成一个 (5, 768) 的矩阵或 (1, 5, 768) 的张量。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="p3" loading="lazy" src="https://Rook1eChan.github.io/bert/p3.jpg"&gt;&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;&lt;strong&gt;segment embedding&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;用来区分两种句子。bert在训练时包括两种任务，其一是MLM（masked language model，掩码语言模型），就是遮住某个词让模型去预测；其二是NSP（next sentence prediction，下一句预测），输入两个句子，让模型判断是否相关。这时候就需要segment embedding对两个句子做区别。&lt;/p&gt;
+&lt;p&gt;进行问答等需要预测下一句的任务时，segment embedding层把0赋值给第一个句子的各token，把1赋值给第二个句子的各token。在文本分类任务时，segment embedding全部为0。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="p4" loading="lazy" src="https://Rook1eChan.github.io/bert/p4.jpg"&gt;&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;&lt;strong&gt;position embedding&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;和transformer的实现不同，不是固定的三角函数，而是可学习的参数。&lt;/p&gt;
+&lt;p&gt;Transformer 中通过植入关于 Token 的相对位置或者绝对位置信息来表示序列的顺序信息。作者测试用学习的方法来得到 Position Embeddings，最终发现固定位置和相对位置效果差不多，所以最后用的是固定位置的，而正弦可以处理更长的 Sequence，且可以用前面位置的值线性表示后面的位置。&lt;/p&gt;</description></item><item><title>Retrieval_Learning</title><link>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</link><pubDate>Mon, 07 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E6%A3%80%E7%B4%A2/</guid><description>&lt;p&gt;&lt;em&gt;简介：检索相关算法的学习&lt;/em&gt;&lt;/p&gt;
+&lt;BR&gt;
+&lt;h1 id="1tf-idf"&gt;1.TF-IDF&lt;/h1&gt;
+&lt;h2 id="11原理"&gt;1.1原理&lt;/h2&gt;
+&lt;p&gt;TF：term frequency（词频）&lt;/p&gt;
+&lt;p&gt;IDF：inverse document frequency（逆文档频率）&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;字词的重要性随着它在文件中出现的次数成正比增加，但同时会随着它在语料库中出现的频率成反比下降。&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;TF-IDF的主要思想是&lt;/strong&gt;：如果某个单词在一篇文章中出现的频率高（TF高），并且在其他文章中很少出现（IDF高），则认为此词或者短语具有很好的类别区分能力，适合用来分类。&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;$TF=\frac{某个词在文章中出现的次数}{文章的总词数}$&lt;/p&gt;
+&lt;p&gt;考虑到文章长短不同，除以总词数进行标准化&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;$IDF=log(\frac{语料库的文章总数}{包含该词的文章数量+1})$&lt;/p&gt;
+&lt;p&gt;加1防止不存在包含该词的文档时分母为0&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;$TF-IDF=TF \times IDF$&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;&lt;strong&gt;优点：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;简单快速、易理解&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;strong&gt;缺点：&lt;/strong&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;没考虑词语的语义&lt;/li&gt;
+&lt;li&gt;仅用词频考虑词语的重要性不够全面。按照传统TF-IDF，往往一些生僻词的IDF(反文档频率)会比较高、因此这些生僻词常会被误认为是文档关键词。&lt;/li&gt;
+&lt;li&gt;没有考虑特征词的位置因素对文本的区分度，词条出现在文档的不同位置时，对区分度的贡献大小是不一样的。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;BR&gt;
+&lt;h2 id="12自己实现"&gt;1.2自己实现&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-python" data-lang="python"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;math&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 计算每句话的词频&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;counter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;doc&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;count&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;word&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;doc&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 计算tf=某个词在文章中出现的总次数/文章的总词数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;tf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="nb"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;values&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 统计含有该单词的句子数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;count_sentence&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 计算idf=log(语料库中的文档总数/(包含该词的文档数+1))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;idf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;math&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;log&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;count_sentence&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# tf-idf=tf*idf&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;tfidf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;tf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;idf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="vm"&gt;__name__&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;__main__&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;docs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;what is the weather like today&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;what is for dinner tonight&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;this is a question worth pondering&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;it is a beautiful day today&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;word_list&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt; &lt;span class="c1"&gt;# 记录每个文档分词后的结果&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;doc&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;docs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;doc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34; &amp;#34;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# 使用停用词&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# stopwords = [&amp;#34;is&amp;#34;, &amp;#34;the&amp;#34;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# for i in docs:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# all_words = i.split()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# new_words = []&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# for j in all_words:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# if j not in stopwords:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# new_words.append(j)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# word_list.append(new_words)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;counter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word_list&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# 统计每个文档词的次数&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;cnt&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;doc&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;enumerate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;doc&lt;/span&gt;&lt;span class="si"&gt;{}&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cnt&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;_&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;doc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;word:&lt;/span&gt;&lt;span class="si"&gt;{}&lt;/span&gt;&lt;span class="s2"&gt; --- TF-IDF:&lt;/span&gt;&lt;span class="si"&gt;{}&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;format&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tfidf&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;doc&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;wordcount&lt;/span&gt;&lt;span class="p"&gt;)))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;BR&gt;
+&lt;h2 id="13使用sklearn库"&gt;1.3使用sklearn库&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-python" data-lang="python"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;sklearn.feature_extraction.text&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;TfidfVectorizer&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="vm"&gt;__name__&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;__main__&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;docs&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;what is the weather like today&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;what is for dinner tonight&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;this is a question worth pondering&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="s2"&gt;&amp;#34;it is a beautiful day today&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;tfidf_vec&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;TfidfVectorizer&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# 利用fit_transform得到TFIDF矩阵&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;tfidf_matrix&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tfidf_vec&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;fit_transform&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;docs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# 利用get_feature_names_out得到不重复的单词&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tfidf_vec&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_feature_names_out&lt;/span&gt;&lt;span class="p"&gt;())&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# 利用vocabulary_得到各单次的编号&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tfidf_vec&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;vocabulary_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="c1"&gt;# 输出TFIDF矩阵，即每个文档中每个词的tfidf值&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tfidf_matrix&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;BR&gt;
+&lt;h1 id="2bm25"&gt;2.BM25&lt;/h1&gt;
+&lt;h2 id="21原理"&gt;2.1原理&lt;/h2&gt;
+&lt;p&gt;BM25是一种基于概率检索框架的排序函数，用于计算查询（Query）与文档（Document）的相关性得分。&lt;/p&gt;</description></item><item><title>Inference Scaling for Long-Context Retrieval Augmented Generation</title><link>https://Rook1eChan.github.io/posts/inference-scaling-for-long-context-retrieval-augmented-generation/</link><pubDate>Wed, 07 May 2025 23:04:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/inference-scaling-for-long-context-retrieval-augmented-generation/</guid><description>&lt;p&gt;ICLR2025，来自Google DeepMind团队的工作&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://arxiv.org/abs/2410.04343v2"&gt;https://arxiv.org/abs/2410.04343v2&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="0目标"&gt;0.目标&lt;/h2&gt;
+&lt;p&gt;先前对于RAG推理扩展的研究主要集中于提供更多的知识，但只增加知识的数量是不够的。当前的LLM在处理长上下文时仍存在挑战。比如，在超长序列中定位有效信息的能力有限、最佳性能往往是在没有充分利用上下文的情况下实现的、超过一定阈值（文档数量）的检索会使性能停滞甚至下降。&lt;/p&gt;
+&lt;p&gt;目标是找到上下文长度与最优配置之间的关系，能够预测最佳推理参数，最大限度提高RAG性能。其中DRAG的参数为检索到的文档数量和示例数量。IterDRAG的参数为生成次数。&lt;/p&gt;
+&lt;h2 id="1贡献"&gt;1.贡献&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;提出两种RAG方法：DRAG（基于演示的RAG，为LLM提供多个RAG示例）和IterDRAG（基于迭代演示的RAG，将输入查询分解为更简单的子查询，迭代检索）。并证明了这两种方法优于仅提供知识的RAG。&lt;/li&gt;
+&lt;li&gt;得到了RAG的推理缩放定律：在最佳配置下，RAG性能随有效上下文长度线性变化。&lt;/li&gt;
+&lt;li&gt;根据定律对RAG性能与不同推理参数建模，推导出计算分配模型，为长上下文RAG的优化提供了指导。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="2相关工作"&gt;2.相关工作&lt;/h2&gt;
+&lt;h3 id="21长上下文llms"&gt;2.1长上下文LLMs&lt;/h3&gt;
+&lt;p&gt;早期采用稀疏/低秩核来减少内存需求。&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;I. Beltagy, M. E. Peters, and A. Cohan. Longformer: The long-document transformer. &lt;em&gt;arXiv preprint&lt;/em&gt; &lt;em&gt;arXiv:2004.05150&lt;/em&gt;, 2020.&lt;/p&gt;
+&lt;p&gt;K. Choromanski, V. Likhosherstov, D. Dohan, X. Song, A. Gane, T. Sarlos, P. Hawkins, J. Davis, A. Mohiuddin, L. Kaiser, et al. Rethinking attention with performers. &lt;em&gt;arXiv preprint arXiv:2009.14794&lt;/em&gt;,2020.&lt;/p&gt;
+&lt;p&gt;N. Kitaev, L. Kaiser, and A. Levskaya. Reformer: The efficient transformer. In &lt;em&gt;International Conference&lt;/em&gt; &lt;em&gt;on Learning Representations&lt;/em&gt;, 2019.&lt;/p&gt;</description></item><item><title>RAGTruth: A Hallucination Corpus for Developing Trustworthy Retrieval-Augmented Language Models</title><link>https://Rook1eChan.github.io/posts/ragtruth/</link><pubDate>Wed, 07 May 2025 15:49:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/ragtruth/</guid><description>&lt;h1 id="1motivation"&gt;1.Motivation&lt;/h1&gt;
+&lt;p&gt;尽管有了RAG的帮助，LLM仍有可能给出与所提供知识不符的回答。因此需要构建一个数据集来检测幻觉。&lt;/p&gt;
+&lt;br&gt;
+&lt;h1 id="2contributions"&gt;2.Contributions&lt;/h1&gt;
+&lt;ol&gt;
+&lt;li&gt;提出RAGTruth，一个大规模词级别的幻觉检测数据集，由LLM自然产生（作者认为故意触发的幻觉与自然产生的幻觉存在差异）&lt;/li&gt;
+&lt;li&gt;对现有幻觉检测方法进行比较&lt;/li&gt;
+&lt;li&gt;提出了微调LLM用于幻觉检测的基线。Llama-2-13B在RAGTruth training data上微调后比得上GPT4&lt;/li&gt;
+&lt;li&gt;证明了使用微调得到的幻觉检测器，能降低幻觉&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h1 id="3related-work"&gt;3.Related Work&lt;/h1&gt;
+&lt;h1 id="4methods"&gt;4.Methods&lt;/h1&gt;
+&lt;h2 id="1hallucination-taxonomy幻觉类型"&gt;1.Hallucination Taxonomy幻觉类型&lt;/h2&gt;
+&lt;p&gt;本文将幻觉类型分为：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;strong&gt;Evident Conflict明显冲突&lt;/strong&gt;：与提供的文本明显相反，容易辨别，如事实错误、拼写错误、数字错误。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Subtle Conflict轻微冲突&lt;/strong&gt;：生成的信息与提供的文本有歧义，比如术语的替换，需要结合上下文判断。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Evident Introduction of Baseless Information明显引入无根据知识&lt;/strong&gt;：生成的内容不在提供的信息之内。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Subtle Introduction of Baseless Information轻微引入无根据知识&lt;/strong&gt;：生成内容超出了提供的信息，比如主观的假设或推断。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id="2response-generation回答生成"&gt;2.Response Generation回答生成&lt;/h2&gt;
+&lt;p&gt;选择三个任务: Question Answering,Data-to-text Writing, and News Summarization.（问题回答、数据到文本的写作、新闻摘要），生成回答并人工标注幻觉部分。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Question Answering&lt;/strong&gt;：从MS MARCO选择与生活相关的QA，每个问题保留三段提取内容，然后使用LLM根据内容回答问题。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Data-to-text Writing&lt;/strong&gt;：从Yelp数据集选择有关商家的结构化信息和用户的评论，用LLM生成对商家的描述。如果数据出现空值而大模型将其解释为“假”，认为这是出现了幻觉。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;News Summarization&lt;/strong&gt;：数据来自CNN/Daily Mail dataset+某新闻平台的新闻，使用LLM对每篇内容生成摘要。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;使用的LLM：GPT-3.5-turbo-0613、GPT-4-0613、Mistral-7b-Instruct、Llama-2-7B-chat、 Llama-2-13B-chat、 Llama-2-70B-chat&lt;/p&gt;
+&lt;p&gt;每个任务都用6个模型跑一遍，得到6个回答。&lt;/p&gt;
+&lt;h2 id="5result"&gt;5.Result&lt;/h2&gt;
+&lt;p&gt;各项任务中幻觉类型的比例：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="f2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/f2.png"&gt;&lt;/p&gt;
+&lt;p&gt;如图2所示，在上下文中无根据的信息生成显著多于与上下文冲突的信息生成，尤其是在问答任务中。在两大类无根据信息和冲突信息中，更严重的幻觉，即明显的无根据信息和明显的冲突信息，占据了相当大的比例。这一观察结果说明即使有RAG，还是存在严重幻觉。&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t2.png"&gt;&lt;/p&gt;
+&lt;p&gt;数据转文本的任务幻觉率最高，可能与JSON格式有关。另外，较新的新闻的幻觉率不比过时新闻高，可能是由于较新的新闻的文本长度较短。&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;各模型出现幻觉的比例：&lt;/p&gt;
+&lt;p&gt;（span、density什么意思）&lt;/p&gt;
+&lt;p&gt;&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t3.png"&gt;&lt;/p&gt;
+&lt;p&gt;表3显示，在我们收集的数据中，OpenAI的两个模型表现出显著较低的幻觉率。具体来说，GPT-4-0613的幻觉频率最低。为了更清晰地比较不同模型的幻觉率，我们计算了每个模型在三个任务中的幻觉密度。幻觉密度定义为每一百个单词响应中平均出现的幻觉跨度数。在Llama2系列中，除了数据总文本写作任务外，模型规模与幻觉密度之间存在明显的负相关关系。尽管Mistral-7B-Instruct模型在各种基准和排行榜上的表现强劲（Zheng等人，2023），但它生成的包含幻觉的回答数量最多。&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;幻觉与文本长度的关系：&lt;/p&gt;
+&lt;p&gt;&lt;img alt="t2" loading="lazy" src="https://Rook1eChan.github.io/RAGTRUTH/t4.png"&gt;&lt;/p&gt;
+&lt;p&gt;对于上下文长度（CLB），只有新闻摘要呈现出上下文越长，越容易幻觉的特点。&lt;/p&gt;
+&lt;p&gt;对于回答长度（RLB），都有回答越长，越容易幻觉的特点。&lt;/p&gt;
+&lt;BR&gt;
+&lt;p&gt;幻觉与位置的关系：&lt;/p&gt;
+&lt;p&gt;在问答和新闻摘要任务中，幻觉更倾向于出现在回答的末尾。数据到文本写作任务在前半部分较易出现幻觉。&lt;/p&gt;</description></item><item><title>RAG,QA相关数据集及评价标准</title><link>https://Rook1eChan.github.io/posts/ragqa-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</link><pubDate>Sun, 04 May 2025 09:12:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/ragqa-%E6%95%B0%E6%8D%AE%E9%9B%86%E8%AF%84%E4%BC%B0/</guid><description>&lt;blockquote&gt;
+&lt;p&gt;RAG，QA常用的数据集和评价标准
+多为知识密集型、问答型数据集&lt;/p&gt;&lt;/blockquote&gt;
+&lt;h1 id="数据集"&gt;数据集&lt;/h1&gt;
+&lt;h2 id="1ultradomain"&gt;1.UltraDomain&lt;/h2&gt;
+&lt;p&gt;lightrag曾使用&lt;/p&gt;
+&lt;p&gt;使用&lt;a href="https://arxiv.org/abs/2409.05591"&gt;MemoRAG&lt;/a&gt;提出的Benchmark。&lt;/p&gt;
+&lt;p&gt;在UltraDomain里，包含多个领域的数据，每个数据包括多本书。以cs为例，共含有100本书和100个对应的问题。该领域专注于计算机科学，涵盖数据科学和软件工程的关键领域。它特别强调机器学习和大数据处理，内容涉及推荐系统、分类算法以及使用Spark进行实时分析。：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-gdscript3" data-lang="gdscript3"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;input&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;How&lt;/span&gt; &lt;span class="n"&gt;does&lt;/span&gt; &lt;span class="n"&gt;Spark&lt;/span&gt; &lt;span class="n"&gt;Streaming&lt;/span&gt; &lt;span class="n"&gt;enable&lt;/span&gt; &lt;span class="n"&gt;real&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;time&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="n"&gt;processing&lt;/span&gt;&lt;span class="err"&gt;?&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;answers&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Spark Streaming extends ...... &amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;context&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;Whole Book......&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;length&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;131651&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;context_id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="n"&gt;bcef8714a477fd61fc8fb0d499b2cc3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;_id&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;b2fd8d9c6d1499d521d778ce3d6d06fa&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;cs&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="n"&gt;meta&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Machine Learning With Spark&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;authors&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;Nick Pentreath&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;数据集地址：&lt;a href="https://huggingface.co/datasets/TommyChien/UltraDomain"&gt;TommyChien/UltraDomain · Datasets at Hugging Face&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Lightrag使用LLM生成问题-答案对&lt;/p&gt;
+&lt;p&gt;生成问题的方法来自于&lt;a href="https://arxiv.org/abs/2404.16130"&gt;From Local to Global: A Graph RAG Approach to Query-Focused Summarization&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;提供文本，让大模型生成K个使用该数据集的用户身份（比如数据集是财经新闻，user就可能是收集金融市场趋势的财经记者），对于每个用户再生成N个任务，每个用户-任务提出M个高层次问题（理解整个数据集、无需提取具体事实）&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; User: A tech journalist looking for insights and trends in the tech industry
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Task: Understanding how tech leaders view the role of policy and regulation
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Questions:
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 1. Which episodes deal primarily with tech policy and government regulation?
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 2. How do guests perceive the impact of privacy laws on technology development?
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 3. Do any guests discuss the balance between innovation and ethical considerations?
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 4. What are the suggested changes to current policies mentioned by the guests?
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; 5. Are collaborations between tech companies and governments discussed and how?
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;BR&gt;
+&lt;h2 id="2dapr使用的数据集"&gt;2.DAPR使用的数据集&lt;/h2&gt;
+&lt;p&gt;MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA&lt;/p&gt;</description></item><item><title>DAPR A Benchmark on Document-Aware Passage Retrieval</title><link>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</link><pubDate>Fri, 02 May 2025 16:41:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/dapr-a-benchmark-on-document-aware-passage-retrieval/</guid><description>&lt;h2 id="1motivation"&gt;1.Motivation&lt;/h2&gt;
+&lt;p&gt;现有的神经检索（neural retrieval）的方法主要集中在短文本排序，在长篇文章中做检索效果并不好（由于自注意力机制token数量的限制；或者返回的文档过长，不便于用户使用）。另外，作者发现在先进检索器的检索错误中，半数错误与缺少上下文有关。&lt;/p&gt;
+&lt;p&gt;比如：在A剧场中演出过的演员有哪些？如果只检索关键字“A剧场”，可能找不到答案，需要结合上下文找到“……在这里演出过……”的内容才是真正答案。&lt;/p&gt;
+&lt;p&gt;因此，作者针对上下文强关联的任务建立了一个数据集，使用两类方法（hybrid retrieval with BM25、 contextualized passage representations）进行实验，并详细解释了实验结果。&lt;/p&gt;
+&lt;BR&gt;
+&lt;h2 id="2related-work"&gt;2.Related work&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Document Question Answering（DocQA）&lt;/strong&gt;：要求模型回答关于输入文档的问题，通常假设文档在提问前就已给出。本文提出的(Document-Awarepassage Retrieval, DAPR)与DocQA类似，区别在于DAPR希望用户提问时不知道目标文档，由模型来寻找目标文档。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Long-document retrieval（长文档检索）&lt;/strong&gt;：对于长文档检索有一些简单的方法：将文档中段落相关性的最大值作为文档的相关性（MaxP）；仅编码文档中的第一个段落（FirstP）……与DAPR相比，所有这些先前的工作都没有研究如何在考虑文档上下文的情况下检索段落。&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Hybrid retrieval（混合检索）&lt;/strong&gt;：对于一个查询使用多个检索系统（常常是BM25+神经检索）
+&lt;ul&gt;
+&lt;li&gt;rank fusion（排名融合）——通过凸组合、互逆排名等方法将不同检索系统的个体排名合并为一个。&lt;/li&gt;
+&lt;li&gt;hierarchical retrieval（层次检索）——首先检索文档，然后从这些文档中检索段落。只适用于段落本身足以对查询做出响应的情况。&lt;/li&gt;
+&lt;li&gt;本文探讨了段落排名和文档排名结合的有效性。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Relation to pre-training tasks（和预训练任务的关系）&lt;/strong&gt;：有的研究在预训练中加入上下文。但推理时仍然只关注独立的段落。&lt;/li&gt;
+&lt;li&gt;补充：
+&lt;ul&gt;
+&lt;li&gt;NQ：谷歌的一个问答数据集&lt;/li&gt;
+&lt;li&gt;NDCG：评价检索序列的相关性和位置&lt;/li&gt;
+&lt;li&gt;共指信息：描述文本中不同表达式指向同一实体或概念的语言现象，如*“玛丽打开了门，&lt;strong&gt;她&lt;/strong&gt;随后拿起包。”* → “她”与“玛丽”共指同一人。&lt;/li&gt;
+&lt;li&gt;共指消解（Coreference Resolution）：自动识别文本中所有指向同一实体的表达式并分组。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;BR&gt;
+&lt;h2 id="3method"&gt;3.Method&lt;/h2&gt;
+&lt;p&gt;DAPR任务要求系统提取+排序。给出段落集合$C$，文档集合$D$，对于查询集合$q \in Q$，检索系统$s$应该提取出最好的$K$个段落集合$R$。&lt;/p&gt;
+&lt;h3 id="31nq-hard"&gt;3.1NQ-Hard&lt;/h3&gt;
+&lt;p&gt;对SOTA的检索器（DRAGON+,SPLADEv2, and ColBERTv2)使用NQ数据集，发现一半的错误来自于不了解上下文。将这些数据命名为&lt;strong&gt;NQ-hard&lt;/strong&gt;，并分为4类：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;共指消解（CR）：关键的共指信息需要通过特定文档上下文来解析；&lt;/li&gt;
+&lt;li&gt;主要主题（MT）：只有了解文档的背景主题（通常是标题），才能回答查询；&lt;/li&gt;
+&lt;li&gt;多跳推理（MHR）：连接查询和查询相关段落中的实体的推理路径包括文档上下文中的其他节点；&lt;/li&gt;
+&lt;li&gt;缩写（AC）：在相关段落（或查询）中出现一个缩写，该缩写对应于查询（或相关段落）中的全称，文档上下文解释了这种映射；&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img alt="nqques" loading="lazy" src="https://Rook1eChan.github.io/DAPR/NQques.png"&gt;&lt;/p&gt;
+&lt;BR&gt;
+&lt;h3 id="32datasets"&gt;3.2Datasets&lt;/h3&gt;
+&lt;p&gt;MS MARCO、Natural Questions、MIRACL、Genomics 和 ConditionalQA（具体处理方式见附录A）有语料库的直接用，没有的把黄金段落文本收集起来当语料库。（也是很神奇）&lt;/p&gt;
+&lt;BR&gt;
+&lt;h3 id="33evaluation"&gt;3.3Evaluation&lt;/h3&gt;
+&lt;p&gt;使用&lt;strong&gt;nDCG@10&lt;/strong&gt;和recall@100做指标。&lt;/p&gt;
+&lt;p&gt;将binary/3-scale转换为0-1/0-1-2，然后使用pytrec_eval计算指标。&lt;/p&gt;
+&lt;p&gt;考虑到现实世界中的检索系统多用于零样本、跨领域的情景，本文进行了一项测试：在MS MARCO训练集训练，然后在MS MARCO测试集测试，作为域内评估；在其它四个数据集上测试，作为域外评估。&lt;/p&gt;
+&lt;BR&gt;
+&lt;h2 id="4experiments"&gt;4.Experiments&lt;/h2&gt;
+&lt;h3 id="41基础检索器"&gt;4.1基础检索器&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;BM25（使用PySerini的默认配置）&lt;/li&gt;
+&lt;li&gt;neural retrievers：DRAGON+、SPLADEv2、ColBERTv2（在MS MARCO上训练）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;BR&gt;
+&lt;h3 id="42两种将上下文引入神经检索器的方法"&gt;4.2两种将上下文引入神经检索器的方法&lt;/h3&gt;
+&lt;h4 id="421加入bm25的混合检索"&gt;4.2.1加入BM25的混合检索&lt;/h4&gt;
+&lt;p&gt;&lt;strong&gt;（1）Rank fusion融合检索&lt;/strong&gt;&lt;/p&gt;</description></item><item><title>从0开始建立Github个人博客(hugo&amp;PaperMod)</title><link>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</link><pubDate>Fri, 02 May 2025 12:39:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BB%8E0%E5%BC%80%E5%A7%8B%E5%BB%BA%E7%AB%8Bgithub%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2hugopapermod/</guid><description>&lt;p&gt;github提供给每个用户一个网址，用户可以建立自己的静态网站。&lt;/p&gt;
+&lt;h2 id="一hugo"&gt;一、Hugo&lt;/h2&gt;
+&lt;p&gt;hugo是一个快速搭建网站的工具，由go语言编写。&lt;/p&gt;
+&lt;h3 id="1安装hugo"&gt;1.安装hugo&lt;/h3&gt;
+&lt;p&gt;到hugo的github标签页&lt;a href="https://github.com/gohugoio/hugo/tags"&gt;Tags · gohugoio/hugo&lt;/a&gt;选择一个版本，下载对应的安装包。比如&lt;code&gt;hugo_extended_withdeploy_0.147.0_windows-amd64.zip&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;解压后，在根目录打开cmd，输入&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-cmd" data-lang="cmd"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;hugo new site YourSiteName
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;为你的网站建立文件夹。&lt;code&gt;YourSiteName&lt;/code&gt;更改为你的网站的名字。
+根目录会出现YourSiteName文件夹。&lt;/p&gt;
+&lt;p&gt;3.将根目录的hugo.exe复制到YourSiteName里。
+在YourSiteName文件夹里打开cmd，输入&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-cmd" data-lang="cmd"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;hugo server -D
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;会返回如下信息：&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-cmd" data-lang="cmd"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; &lt;span class="p"&gt;|&lt;/span&gt; EN
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;-------------------+-----
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Pages &lt;span class="p"&gt;|&lt;/span&gt; 11
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Paginator pages &lt;span class="p"&gt;|&lt;/span&gt; 0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Non-page files &lt;span class="p"&gt;|&lt;/span&gt; 0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Static files &lt;span class="p"&gt;|&lt;/span&gt; 0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Processed images &lt;span class="p"&gt;|&lt;/span&gt; 0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Aliases &lt;span class="p"&gt;|&lt;/span&gt; 2
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt; Cleaned &lt;span class="p"&gt;|&lt;/span&gt; 0
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Built in 79 ms
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Environment: &lt;span class="s2"&gt;&amp;#34;development&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Serving pages from disk
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Running in Fast Render Mode. For full rebuilds on change: hugo server --disableFastRender
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Web Server is available at http://localhost:1313/ (bind address 127.0.0.1)
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Press Ctrl+C to stop
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;在浏览器中输入&lt;code&gt;http://localhost:1313/&lt;/code&gt;，显示Page Not Found，说明服务器正常运行，但是此时网站还没有页面。&lt;/p&gt;</description></item><item><title>Neural-IR Models（博客）</title><link>https://Rook1eChan.github.io/posts/neural-ir-models/</link><pubDate>Fri, 02 May 2025 01:18:03 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/neural-ir-models/</guid><description>&lt;p&gt;原文：&lt;a href="https://medium.com/@mhammadkhan/neural-re-ranking-models-c0a67278f626"&gt;Neural-IR Models.. Neural IR(Information Retrieval) is a… | by Muhammad Hammad Khan | Medium&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;译文：&lt;a href="https://zhuanlan.zhihu.com/p/545429612"&gt;【翻译】一文详解神经信息检索领域的最新进展 - 知乎&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;神经信息检索(Neural Information Retrieval, Neural IR)是信息检索领域的一个重要研究课题。自从谷歌在2018年发布BERT以来，它在11个NLP任务上获得了最先进的结果，一举改变了整个NLP领域的研究范式。2019年1月，Nogueira和Cho在MS MARCO Passage Ranking测试集上首次使用BERT。从那时起，人们开始研究神经信息检索的范式，也提出了许多基于BERT的文本排序方法。这些方法用于&lt;strong&gt;多阶段搜索架构的重排阶段(Re-Ranker)&lt;/strong&gt;。如下图所示。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="image" loading="lazy" src="https://Rook1eChan.github.io/Neural-IR-Models-1.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;Figure1 展示了一个简化的多阶段搜索结构。第一步：倒排索引（Inverted Index）+BM25得分进行排序，得到topK文档，这一步也叫候选项生成（Candidates Generation）。第二步，通过基于BERT的上下文排序模型来确定前N个文档的最终排序。&lt;/p&gt;
+&lt;p&gt;神经重排模型(Neural re-ranking models)一般可以分为以下四种，如Figure2所示：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;基于表征(representation-focused)&lt;/li&gt;
+&lt;li&gt;基于交互(interaction-focused)&lt;/li&gt;
+&lt;li&gt;全交互（也被称作交叉编码器,）(all-to-all interaction(cross encoder) )&lt;/li&gt;
+&lt;li&gt;迟交互(late interaction)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img alt="image" loading="lazy" src="https://Rook1eChan.github.io/Neural-IR-Models-2.jpg"&gt;&lt;/p&gt;
+&lt;h2 id="1基于表征双塔模型bi-encoder-models"&gt;1.基于表征——双塔模型(Bi-encoder Models)&lt;/h2&gt;
+&lt;p&gt;双塔模型将Query和Doc分别表征为密集的向量嵌入，用向量相似度分数来估计Q和D的相关性。在训练时&lt;strong&gt;需要正负样本进行对比学习&lt;/strong&gt;，因为如果只给模型看正样本，它会偷懒——把所有向量都变成一样的，这样“相似度”永远最高。负样本强迫模型学会区分相关和不相关的内容。&lt;/p&gt;
+&lt;p&gt;在将模型训练好后，doc和query的表征可以独立进行，不用像交叉编码器那样每次都要把Query和Doc拼在一起重新计算。&lt;/p&gt;
+&lt;h3 id="11密集段落检索器dense-passage-retriever-dpr"&gt;1.1密集段落检索器(Dense passage retriever, DPR)&lt;/h3&gt;
+&lt;blockquote&gt;
+&lt;p&gt;论文：&lt;a href="https://aclanthology.org/2020.emnlp-main.550"&gt;Dense Passage Retrieval for Open-Domain Question Answering&lt;/a&gt;
 EMNLP 2020, Facebook Research
-Code: &lt;a href="https://github.com/facebookresearch/DPR">github.com/facebookresearch/DPR&lt;/a>
-讲解博客：&lt;a href="https://blog.csdn.net/qq_45668004/article/details/138256448">【IR 论文】DPR — 最早提出使用嵌入向量来检索文档的模型_dpr模型-CSDN博客&lt;/a>&lt;/p>&lt;/blockquote>
-&lt;p>DPR是一个应用于问答领域的双塔模型，旨在最大限度地提高查询与相关文档的相似度，同时最小化与非相关文档的相似度。DPR是RAG中R的经典方案。&lt;/p>
-&lt;p>正样本往往数据集已给定，而负样本比较难选择。为此，DPR提出了一种Batch内负采样的技术，从同一批次的其他样本中选择样本作为负样本。这种方法是有效且高效的。&lt;/p>
-&lt;h3 id="12最近邻负对比估计-approximate-nearest-neighbour-negative-contrastive-estimation-ance">1.2最近邻负对比估计 (Approximate nearest neighbour Negative Contrastive Estimation, ANCE)&lt;/h3>
-&lt;p>该论文证明了强负样本能够加速模型收敛，提升模型性能。负样本分为易区别的和不易区别的，显然不易区别（即强负样本）的对模型学习帮助更大。本文使用ANN寻找强负样本。&lt;/p></description></item></channel></rss>
+Code: &lt;a href="https://github.com/facebookresearch/DPR"&gt;github.com/facebookresearch/DPR&lt;/a&gt;
+讲解博客：&lt;a href="https://blog.csdn.net/qq_45668004/article/details/138256448"&gt;【IR 论文】DPR — 最早提出使用嵌入向量来检索文档的模型_dpr模型-CSDN博客&lt;/a&gt;&lt;/p&gt;&lt;/blockquote&gt;
+&lt;p&gt;DPR是一个应用于问答领域的双塔模型，旨在最大限度地提高查询与相关文档的相似度，同时最小化与非相关文档的相似度。DPR是RAG中R的经典方案。&lt;/p&gt;
+&lt;p&gt;正样本往往数据集已给定，而负样本比较难选择。为此，DPR提出了一种Batch内负采样的技术，从同一批次的其他样本中选择样本作为负样本。这种方法是有效且高效的。&lt;/p&gt;
+&lt;h3 id="12最近邻负对比估计-approximate-nearest-neighbour-negative-contrastive-estimation-ance"&gt;1.2最近邻负对比估计 (Approximate nearest neighbour Negative Contrastive Estimation, ANCE)&lt;/h3&gt;
+&lt;p&gt;该论文证明了强负样本能够加速模型收敛，提升模型性能。负样本分为易区别的和不易区别的，显然不易区别（即强负样本）的对模型学习帮助更大。本文使用ANN寻找强负样本。&lt;/p&gt;</description></item></channel></rss>
