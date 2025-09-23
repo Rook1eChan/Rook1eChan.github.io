@@ -1,5 +1,95 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>陈</title><link>https://Rook1eChan.github.io/</link><description>Recent content on 陈</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><lastBuildDate>Mon, 22 Sep 2025 11:45:39 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>Article</title><link>https://Rook1eChan.github.io/posts/blog/article/</link><pubDate>Mon, 22 Sep 2025 11:45:39 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/blog/article/</guid><description>&lt;p&gt;你好 aaaaa
-&lt;img alt="alt" loading="lazy" src="../pic/123.png"&gt;&lt;/p&gt;</description></item><item><title>LumberChunker</title><link>https://Rook1eChan.github.io/posts/lumberchunker/</link><pubDate>Sat, 16 Aug 2025 21:23:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/lumberchunker/</guid><description>&lt;p&gt;&lt;em&gt;EMNLP2024&lt;/em&gt;&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>陈</title><link>https://Rook1eChan.github.io/</link><description>Recent content on 陈</description><generator>Hugo -- 0.150.0</generator><language>zh-CN</language><lastBuildDate>Tue, 23 Sep 2025 14:46:23 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/index.xml" rel="self" type="application/rss+xml"/><item><title>cs336 Lec1</title><link>https://Rook1eChan.github.io/posts/cs336/lec1/</link><pubDate>Tue, 23 Sep 2025 14:46:23 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/cs336/lec1/</guid><description/></item><item><title>minbpe：BPE算法的极简实现</title><link>https://Rook1eChan.github.io/posts/minbpe/minbpebpe%E7%AE%97%E6%B3%95%E7%9A%84%E6%9E%81%E7%AE%80%E5%AE%9E%E7%8E%B0/</link><pubDate>Tue, 23 Sep 2025 14:46:23 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/minbpe/minbpebpe%E7%AE%97%E6%B3%95%E7%9A%84%E6%9E%81%E7%AE%80%E5%AE%9E%E7%8E%B0/</guid><description>&lt;h1 id="minbpebpe算法的极简实现"&gt;minbpe：BPE算法的极简实现&lt;/h1&gt;
+&lt;p&gt;github 地址：&lt;a href="https://github.com/karpathy/minbpe"&gt;karpathy/minbpe&lt;/a&gt;&lt;/p&gt;
+&lt;BR&gt;
+&lt;h1 id="1bpe-算法"&gt;1.BPE 算法&lt;/h1&gt;
+&lt;p&gt;BPE(Byte Pair Encoding) 是大模型的 tokenizer 常用的算法。它对输入文本的字节进行编码。&lt;/p&gt;
+&lt;p&gt;该算法因 GPT-2 的&lt;a href="https://d4mucfpksywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf"&gt;论文&lt;/a&gt;和&lt;a href="https://github.com/openai/gpt-2"&gt;代码&lt;/a&gt;而被广泛使用于 LLM。&lt;a href="https://arxiv.org/abs/1508.07909"&gt;Sennrich et al. 2015&lt;/a&gt;被认为是 BPE 在 NLP 应用中的原始参考。&lt;/p&gt;
+&lt;p&gt;简单来说，bpe 把文本看作 utf-8 编码的字节，然后将出现次数最多的相邻字节合并，生成一个新的编码。如此反复操作。&lt;/p&gt;
+&lt;BR&gt;
+&lt;h1 id="2minbpe-简介"&gt;2.minbpe 简介&lt;/h1&gt;
+&lt;h2 id="21quickstart"&gt;2.1quickstart&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-python" data-lang="python"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;minbpe&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;BasicTokenizer&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;BasicTokenizer&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;aaabdaaabac&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 训练&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;train&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;256&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;# 256tokens, 3merges&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 编码&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 解码&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;decode&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="mi"&gt;258&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;258&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;97&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;99&lt;/span&gt;&lt;span class="p"&gt;]))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 保存&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;save&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;toy&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# writes two files: toy.model (for loading) and toy.vocab (for viewing)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;英语字母一个字母对应一个字节。对于&amp;quot;aaabdaaabac&amp;quot;，先计算相邻两字节的出现次数，然后选择次数最多的进行合并（“aa”，4次）。&lt;/p&gt;
+&lt;p&gt;“a”“a”合并为“aa”，编码为256。&lt;/p&gt;
+&lt;p&gt;然后再计算相邻两字节的出现次数，再合并。&lt;/p&gt;
+&lt;p&gt;在 toy.vocab 中可以看到所有字符及对应的编码。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;toy.vocab
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;......
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;[a][a] -&amp;gt; [aa] 256
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;[aa][a] -&amp;gt; [aaa] 257
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;[aaa][b] -&amp;gt; [aaab] 258
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;BR&gt;
+&lt;h2 id="22minbpe和gpt-4分词器功能相同"&gt;2.2minbpe和GPT-4分词器功能相同&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-python" data-lang="python"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 1.证明RegexTokenizer与GPT-4的分词器性能一致&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;hello123!!!? (안녕하세요!) 😉&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# pip install tiktoken&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;tiktoken&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;enc&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tiktoken&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get_encoding&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;cl100k_base&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;enc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# [15339, 4513, 12340, 30, 320, 31495, 230, 75265, 243, 92245, 16715, 57037]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;minbpe&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;GPT4Tokenizer&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;GPT4Tokenizer&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# [15339, 4513, 12340, 30, 320, 31495, 230, 75265, 243, 92245, 16715, 57037]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# 2.标记特殊token&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;#34;&amp;lt;|endoftext|&amp;gt;hello world&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;enc&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;allowed_special&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;all&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# [100257, 15339, 1917]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# ours&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tokenizer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;encode&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;allowed_special&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;&amp;#34;all&amp;#34;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;&lt;span class="c1"&gt;# [100257, 15339, 1917]&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;调用 encode 时必须显示声明处理特殊标记。&lt;code&gt;allowed_special&lt;/code&gt; 参数可以设置为&amp;quot;all&amp;quot;、&amp;ldquo;none&amp;quot;或一个特殊token列表。&lt;/p&gt;</description></item><item><title>在Autodl中使用LLaMA-Factory进行微调</title><link>https://Rook1eChan.github.io/posts/llama-factory/llama-factory/</link><pubDate>Mon, 22 Sep 2025 21:15:56 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/llama-factory/llama-factory/</guid><description>&lt;h1 id="一环境准备"&gt;一、环境准备&lt;/h1&gt;
+&lt;h2 id="11创建虚拟环境"&gt;1.1创建虚拟环境&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda create -n lf &lt;span class="nv"&gt;python&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;3.11
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda init
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后重开cmd&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda activate lf
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="12下载相关的包"&gt;1.2下载相关的包&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda install &lt;span class="nv"&gt;pytorch&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;2.4.0 &lt;span class="nv"&gt;torchvision&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;0.19.0 &lt;span class="nv"&gt;torchaudio&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;2.4.0 pytorch-cuda&lt;span class="o"&gt;=&lt;/span&gt;12.1 -c pytorch -c nvidia
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;验证GPU版本的Pytorch是否成功&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;python -c &lt;span class="s2"&gt;&amp;#34;import torch; print(torch.cuda.is_available())&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="13下载llama-factory"&gt;1.3下载llama factory&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt install git
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;开科学上网&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git clone https://github.com/hiyouga/LLaMA-Factory.git
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="14安装依赖"&gt;1.4安装依赖&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;python -m pip install --upgrade pip
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -r requirements.txt
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -e &lt;span class="s2"&gt;&amp;#34;.[torch,metrics]&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果下载有问题，可以尝试清华源&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -e &lt;span class="s2"&gt;&amp;#34;.[torch,metrics]&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h2 id="15清理pip"&gt;1.5清理pip&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip cache purge
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
+&lt;h1 id="二下载模型"&gt;二、下载模型&lt;/h1&gt;
+&lt;h2 id="21从modelscope下载模型权重文件"&gt;2.1从modelscope下载模型权重文件&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install modelscope
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以下载到默认的内存，一般在/root/.cache/modelscope/hub/model/里面&lt;/p&gt;</description></item><item><title>LumberChunker</title><link>https://Rook1eChan.github.io/posts/lumberchunker/</link><pubDate>Sat, 16 Aug 2025 21:23:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/lumberchunker/</guid><description>&lt;p&gt;&lt;em&gt;EMNLP2024&lt;/em&gt;&lt;/p&gt;
 &lt;h1 id="0主要贡献"&gt;0.主要贡献&lt;/h1&gt;
 &lt;ul&gt;
 &lt;li&gt;提出了Lumberchunker文本分割方法&lt;/li&gt;
@@ -138,38 +228,7 @@
 &lt;/table&gt;
 &lt;BR&gt;
 &lt;h1 id="p1-i-dont-use-rag-i-just-retrieve-documents"&gt;P1: I don’t use RAG, I just retrieve documents&lt;/h1&gt;
-&lt;p&gt;现在有一些说法，认为长上下文窗口的出现使得我们不再需要RAG了。&lt;/p&gt;</description></item><item><title>在Autodl中使用LLaMA-Factory进行微调</title><link>https://Rook1eChan.github.io/posts/llama-factory/</link><pubDate>Thu, 17 Jul 2025 10:07:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/llama-factory/</guid><description>&lt;p&gt;LLaMA-Factory使用教程&lt;/p&gt;
-&lt;h1 id="一环境准备"&gt;一、环境准备&lt;/h1&gt;
-&lt;h2 id="11创建虚拟环境"&gt;1.1创建虚拟环境&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda create -n lf &lt;span class="nv"&gt;python&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;3.11
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda init
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;然后重开cmd&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda activate lf
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
-&lt;h2 id="12下载相关的包"&gt;1.2下载相关的包&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;conda install &lt;span class="nv"&gt;pytorch&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;2.4.0 &lt;span class="nv"&gt;torchvision&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;0.19.0 &lt;span class="nv"&gt;torchaudio&lt;/span&gt;&lt;span class="o"&gt;==&lt;/span&gt;2.4.0 pytorch-cuda&lt;span class="o"&gt;=&lt;/span&gt;12.1 -c pytorch -c nvidia
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;验证GPU版本的Pytorch是否成功&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;python -c &lt;span class="s2"&gt;&amp;#34;import torch; print(torch.cuda.is_available())&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
-&lt;h2 id="13下载llama-factory"&gt;1.3下载llama factory&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;sudo apt install git
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;开科学上网&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;git clone https://github.com/hiyouga/LLaMA-Factory.git
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
-&lt;h2 id="14安装依赖"&gt;1.4安装依赖&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;python -m pip install --upgrade pip
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -r requirements.txt
-&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -e &lt;span class="s2"&gt;&amp;#34;.[torch,metrics]&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果下载有问题，可以尝试清华源&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -e &lt;span class="s2"&gt;&amp;#34;.[torch,metrics]&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
-&lt;h2 id="15清理pip"&gt;1.5清理pip&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip cache purge
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;br&gt;
-&lt;h1 id="二下载模型"&gt;二、下载模型&lt;/h1&gt;
-&lt;h2 id="21从modelscope下载模型权重文件"&gt;2.1从modelscope下载模型权重文件&lt;/h2&gt;
-&lt;div class="highlight"&gt;&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-bash" data-lang="bash"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;pip install modelscope
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;可以下载到默认的内存，一般在/root/.cache/modelscope/hub/model/里面&lt;/p&gt;</description></item><item><title>BERT</title><link>https://Rook1eChan.github.io/posts/bert/</link><pubDate>Tue, 08 Jul 2025 17:02:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/bert/</guid><description>&lt;p&gt;参考：https://zhuanlan.zhihu.com/p/403495863&lt;/p&gt;
+&lt;p&gt;现在有一些说法，认为长上下文窗口的出现使得我们不再需要RAG了。&lt;/p&gt;</description></item><item><title>BERT</title><link>https://Rook1eChan.github.io/posts/bert/</link><pubDate>Tue, 08 Jul 2025 17:02:00 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/bert/</guid><description>&lt;p&gt;参考：https://zhuanlan.zhihu.com/p/403495863&lt;/p&gt;
 &lt;h1 id="1介绍"&gt;1.介绍&lt;/h1&gt;
 &lt;p&gt;BERT(Bidirectional Encoder Representation from Transformers)是2018年10月由Google AI研究院提出的一种预训练模型，该模型在机器阅读理解顶级水平测试&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=SQuAD1.1&amp;amp;zhida_source=entity"&gt;SQuAD1.1&lt;/a&gt;中表现出惊人的成绩: 全部两个衡量指标上全面超越人类，并且在11种不同NLP测试中创出SOTA表现，包括将GLUE基准推高至80.4% (绝对改进7.6%)，&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=MultiNLI&amp;amp;zhida_source=entity"&gt;MultiNLI&lt;/a&gt;准确度达到86.7% (绝对改进5.6%)，成为NLP发展史上的里程碑式的模型成就。&lt;/p&gt;
 &lt;p&gt;BERT的网络架构使用的是&lt;a href="https://zhida.zhihu.com/search?content_id=177795576&amp;amp;content_type=Article&amp;amp;match_order=1&amp;amp;q=%E3%80%8AAttention+is+all+you+need%E3%80%8B&amp;amp;zhida_source=entity"&gt;《Attention is all you need》&lt;/a&gt;中提出的多层Transformer结构。其最大的特点是抛弃了传统的RNN和CNN，通过Attention机制将任意位置的两个单词的距离转换成1，有效的解决了NLP中棘手的长期依赖问题。Transformer的结构在NLP领域中已经得到了广泛应用。&lt;/p&gt;
