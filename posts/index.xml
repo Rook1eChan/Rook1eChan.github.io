@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on 陈</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on 陈</description><generator>Hugo -- 0.150.1</generator><language>zh-CN</language><lastBuildDate>Tue, 23 Sep 2025 14:46:23 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>2025届CS保研经验贴</title><link>https://Rook1eChan.github.io/posts/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/</link><pubDate>Tue, 23 Sep 2025 14:46:23 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/</guid><description>&lt;hr&gt;
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>Posts on 陈</title><link>https://Rook1eChan.github.io/posts/</link><description>Recent content in Posts on 陈</description><generator>Hugo -- 0.150.1</generator><language>zh-CN</language><lastBuildDate>Tue, 23 Sep 2025 14:46:23 +0800</lastBuildDate><atom:link href="https://Rook1eChan.github.io/posts/index.xml" rel="self" type="application/rss+xml"/><item><title>2025届CS保研经验贴</title><link>https://Rook1eChan.github.io/posts/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/</link><pubDate>Tue, 23 Sep 2025 14:46:23 +0800</pubDate><guid>https://Rook1eChan.github.io/posts/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/%E4%BF%9D%E7%A0%94%E7%BB%8F%E9%AA%8C%E8%B4%B4/</guid><description>&lt;BR&gt;
 &lt;p&gt;&lt;em&gt;一路上受到了很多朋友和陌生网友的帮助，无以为报。因此，我也将自己的经验写下来，供后来者参考。（更适合双非四非的同学参考）&lt;/em&gt;&lt;/p&gt;
+&lt;br&gt;
 &lt;h1 id="个人背景"&gt;个人背景&lt;/h1&gt;
 &lt;p&gt;**学校：**北京普通一本&lt;/p&gt;
 &lt;p&gt;**GPA（rk）：**排名2&lt;/p&gt;
@@ -146,7 +147,7 @@
 &lt;p&gt;这门课的重点是什么？1.全面从底层了解大模型；2.给定计算资源和时间限制，明白怎么去高效的训练模型。&lt;/p&gt;
 &lt;br&gt;
 &lt;h1 id="1课程主要内容"&gt;1.课程主要内容&lt;/h1&gt;
-&lt;p&gt;&lt;img loading="lazy" src="..%5Cpic%5C1.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img loading="lazy" src="../pic/p1.png"&gt;&lt;/p&gt;
 &lt;h2 id="11basics"&gt;1.1Basics&lt;/h2&gt;
 &lt;p&gt;得到一个能运行的简易pipeline，包括tokenizer（BPE算法）、model architecture（Transformer架构及其各个组件）、training（优化器、学习率等等）。&lt;/p&gt;
 &lt;h2 id="12systems"&gt;1.2Systems&lt;/h2&gt;
