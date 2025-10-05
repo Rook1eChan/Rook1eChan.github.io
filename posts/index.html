@@ -46,8 +46,25 @@ fp8，8位，有E4M3、E5M2两种形式。
 tensor默认存储在cpu上，需要显式将其移动到gpu。
 memory_allocated = torch.cuda.memory_allocated() x = torch.zeros(32, 32) assert x.device == torch.device("cpu") text("为了利用GPU的并行计算能力，将tensor迁移到GPU") text("Move the tensor to GPU memory (device 0).") y = x.to("cuda:0") assert y.device == torch.device("cuda", 0) text("Or create a tensor directly on the GPU:") z = torch.zeros(32, 32, device="cuda:0") new_memory_allocated = torch.cuda.memory_allocated() memory_used = new_memory_allocated - memory_allocated assert memory_used == 2 * (32 * 32 * 4) # 2 32x32 matrices of 4-byte floats 某些操作，如切片、转置、改变形状，并不会产生一个新的tensor，只是改变了tensor的元数据的值，例如：
 ...</p></div><footer class=entry-footer><span title='2025-09-23 14:46:23 +0800 +0800'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to CS336 Lec2" href=https://Rook1eChan.github.io/posts/cs336/lec2/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>CS336 Lec2
-<span class=entry-hint title=Draft><svg height="20" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-410v-60h3e2v60H160zm0-165v-60h470v60H160zm0-165v-60h470v60H160zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22-4.5 22.5T862.09-380L643-160H520zm3e2-263-37-37 37 37zM580-220h38l121-122-18-19-19-18-122 121v38zm141-141-19-18 37 37-18-19z"/></svg></span></h2></header><div class=entry-content><p>CS336: Language Models From Scratch (Spring 2025)</p></div><footer class=entry-footer><span title='2025-09-23 14:46:23 +0800 +0800'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to CS336 Lec2" href=https://Rook1eChan.github.io/posts/cs336/new/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>CS336 Lec3
-<span class=entry-hint title=Draft><svg height="20" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-410v-60h3e2v60H160zm0-165v-60h470v60H160zm0-165v-60h470v60H160zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22-4.5 22.5T862.09-380L643-160H520zm3e2-263-37-37 37 37zM580-220h38l121-122-18-19-19-18-122 121v38zm141-141-19-18 37 37-18-19z"/></svg></span></h2></header><div class=entry-content><p>CS336: Language Models From Scratch (Spring 2025)</p></div><footer class=entry-footer><span title='2025-09-23 14:46:23 +0800 +0800'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to CS336 Lec3" href=https://Rook1eChan.github.io/posts/cs336/lec3/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>minbpe：BPE算法的极简实现</h2></header><div class=entry-content><p>minbpe：BPE算法的极简实现 github 地址：karpathy/minbpe
+<span class=entry-hint title=Draft><svg height="20" viewBox="0 -960 960 960" fill="currentColor"><path d="M160-410v-60h3e2v60H160zm0-165v-60h470v60H160zm0-165v-60h470v60H160zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22-4.5 22.5T862.09-380L643-160H520zm3e2-263-37-37 37 37zM580-220h38l121-122-18-19-19-18-122 121v38zm141-141-19-18 37 37-18-19z"/></svg></span></h2></header><div class=entry-content><p>CS336: Language Models From Scratch (Spring 2025)</p></div><footer class=entry-footer><span title='2025-09-23 14:46:23 +0800 +0800'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to CS336 Lec2" href=https://Rook1eChan.github.io/posts/cs336/new/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>CS336 Lec3</h2></header><div class=entry-content><p>CS336: Language Models From Scratch (Spring 2025)
+本节主要讲了模型的架构设计和超参数选择。
+1.Architecture 1.1Norm pre-norm, post-norm, ‘double’-norm
+自从GPT之后大都采用pre-norm，把layernorm层放到FFN、MHA层之前。
+prenorm和postnorm的效果一样好，而且不需要warm。更好的梯度反向传播，更少的spike。
+现在有的模型还使用’double’-norm，即FFN、MHA层之前之后都有layernorm。
+LayerNorm, RMSNorm
+原始的transformer和早期模型使用LN，现在都改为使用RMSN。
+LN：$y = \frac{x - \text{E}[x]}{\sqrt{\text{Var}[x] + \epsilon}} * \gamma + \beta$
+其中 $\text{E}[x]$ 是均值，$\text{Var}[x]$ 是方差，$\epsilon$ 是防止分母为 0 的小量，$\gamma$（缩放因子）和 $\beta$​​（偏移因子）是可学习参数。
+RMSN：$y = \frac{x}{\sqrt{\|x\|_2^2 + \epsilon}} * \gamma$​ 其中 $\|x\|_2^2$​ 是输入 x 的二范数平方，$\epsilon$​ 是防止分母为 0 的小量，$\gamma$​ 是可学习的缩放参数。
+不减去均值，也不添加偏置项$\beta$​。
+RMSN效果和LN一样好，而且更快。操作更少（无需计算平均值），参数更少（没有偏置项）。
+曾有研究表明，在模型运算中，矩阵乘法占用的flops达到99.8%，正则化的运算量只占到0.17%。从计算性能的角度看，norm没必要优化。但是内存开销也是一个重要的考量，该研究指出正则化所占的运行时间达到25.5%，在内存搬运上花了相当一部分时间，因此值得优化。
+现有的大部分transformer模型都没有bias项，只进行矩阵乘法。reason：更稳定（原因未知）
+1.2 Activations ReLU、GeLU、SwiGLU、GeGLU GLU（门控线性单元）现在得到广泛使用
+ReLU（Rectified Linear Unit，修正线性单元）是深度学习中最常用的激活函数之一。
+ReLU 的函数形式非常简单，数学定义为：$\text{ReLU}(x) = \max(0, x)$即：
+...</p></div><footer class=entry-footer><span title='2025-09-23 14:46:23 +0800 +0800'>September 23, 2025</span></footer><a class=entry-link aria-label="post link to CS336 Lec3" href=https://Rook1eChan.github.io/posts/cs336/lec3/></a></article><article class=post-entry><header class=entry-header><h2 class=entry-hint-parent>minbpe：BPE算法的极简实现</h2></header><div class=entry-content><p>minbpe：BPE算法的极简实现 github 地址：karpathy/minbpe
 1.BPE 算法 BPE(Byte Pair Encoding) 是大模型的 tokenizer 常用的算法。它对输入文本的字节进行编码。
 该算法因 GPT-2 的论文和代码而被广泛使用于 LLM。Sennrich et al. 2015被认为是 BPE 在 NLP 应用中的原始参考。
 简单来说，bpe 把文本看作 utf-8 编码的字节，然后将出现次数最多的相邻字节合并，生成一个新的编码。如此反复操作。
